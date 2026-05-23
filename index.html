@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Paula">
+<meta name="theme-color" content="#F5F2EC">
+<title>Proyecto Paula</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{--sage:#8FAF8A;--sage-light:#E8F0E6;--sage-dark:#5A7A55;--cream:#F5F2EC;--cream-dark:#EDE9E0;--ink:#1C1C1A;--ink-soft:#4A4A45;--ink-muted:#8A8A82;--border:rgba(28,28,26,0.1);--border-soft:rgba(28,28,26,0.06);--amber:#C8873A;--amber-light:#FBF0E3;--blue:#3A6EA8;--blue-light:#E3EDF8;--purple:#7A5FA8;--purple-light:#EEE8F8;--coral:#B85A3A;--coral-light:#F8E8E3;--green-soft:#D4E8D0;--green-text:#3A6A35;--r:12px;--r-sm:8px;--shadow:0 2px 16px rgba(28,28,26,0.08);}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--ink);overflow-x:hidden;}
+.app-header{padding:52px 20px 14px;border-bottom:1px solid var(--border-soft);position:sticky;top:0;z-index:100;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);background:rgba(245,242,236,0.93);}
+.app-header h1{font-family:'Playfair Display',serif;font-size:22px;font-weight:400;letter-spacing:-0.3px;}
+.app-header p{font-size:12px;color:var(--ink-muted);margin-top:2px;}
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:rgba(245,242,236,0.96);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-top:1px solid var(--border);display:flex;padding:8px 0 24px;z-index:200;}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 4px;cursor:pointer;border:none;background:none;color:var(--ink-muted);font-family:'DM Sans',sans-serif;font-size:10px;font-weight:400;}
+.nav-item.active{color:var(--sage-dark);font-weight:500;}
+.nav-icon{font-size:20px;line-height:1;}
+.main{padding:20px 16px 100px;}
+.screen{display:none;}.screen.on{display:block;}
+.card{background:white;border-radius:var(--r);padding:16px;margin-bottom:12px;box-shadow:var(--shadow);border:1px solid var(--border-soft);}
+.card-title{font-family:'Playfair Display',serif;font-size:15px;font-weight:500;color:var(--ink);margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+.icon{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;}
+.badge{display:inline-block;font-size:10px;padding:2px 7px;border-radius:20px;font-weight:500;white-space:nowrap;}
+.b-sage{background:var(--sage-light);color:var(--sage-dark);}
+.b-amber{background:var(--amber-light);color:var(--amber);}
+.b-blue{background:var(--blue-light);color:var(--blue);}
+.b-purple{background:var(--purple-light);color:var(--purple);}
+.b-coral{background:var(--coral-light);color:var(--coral);}
+.b-green{background:var(--green-soft);color:var(--green-text);}
+.b-muted{background:var(--cream-dark);color:var(--ink-muted);}
+.row{display:flex;justify-content:space-between;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--border-soft);font-size:13px;gap:12px;}
+.row:last-child{border-bottom:none;}
+.row-label{color:var(--ink-muted);flex-shrink:0;}
+.row-val{color:var(--ink);text-align:right;line-height:1.5;}
+.note{background:var(--cream);border-radius:var(--r-sm);padding:10px 12px;font-size:12px;color:var(--ink-soft);line-height:1.6;margin-top:8px;border:1px solid var(--border-soft);}
+.sec-label{font-size:11px;font-weight:500;color:var(--ink-muted);text-transform:uppercase;letter-spacing:0.06em;margin:16px 0 8px;}
+.sec-label:first-child{margin-top:0;}
+.habit-item{display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid var(--border-soft);}
+.habit-item:last-child{border-bottom:none;}
+.habit-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;margin-top:5px;}
+.habit-text{font-size:13px;color:var(--ink);font-weight:500;}
+.habit-sub{font-size:11px;color:var(--ink-muted);margin-top:1px;}
+.plate-row{display:flex;gap:12px;margin-bottom:12px;flex-wrap:wrap;}
+.plate-seg{text-align:center;}
+.plate-circle{width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:500;margin:0 auto 4px;font-family:'Playfair Display',serif;}
+.plate-lbl{font-size:11px;color:var(--ink-muted);}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px;}
+.tab-btn{padding:7px 14px;border-radius:20px;border:1px solid var(--border);background:white;color:var(--ink-muted);font-size:12px;font-family:'DM Sans',sans-serif;cursor:pointer;}
+.tab-btn.active{background:var(--ink);color:white;border-color:var(--ink);font-weight:500;}
+.day-sel{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin-bottom:14px;scrollbar-width:none;}
+.day-sel::-webkit-scrollbar{display:none;}
+.day-btn{flex-shrink:0;padding:6px 14px;border-radius:20px;border:1px solid var(--border);background:white;color:var(--ink-muted);font-size:12px;font-family:'DM Sans',sans-serif;cursor:pointer;}
+.day-btn.active{background:var(--sage-dark);color:white;border-color:var(--sage-dark);font-weight:500;}
+.meal-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;}
+.mc{background:var(--cream);border-radius:var(--r-sm);padding:10px;border:1px solid var(--border-soft);}
+.mc-time{font-size:10px;font-weight:500;color:var(--ink-muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:3px;}
+.mc-name{font-size:13px;font-weight:500;color:var(--ink);margin-bottom:3px;line-height:1.3;}
+.mc-detail{font-size:11px;color:var(--ink-soft);line-height:1.5;}
+.mc-tag{margin-top:5px;}
+.suppl-row{display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid var(--border-soft);}
+.suppl-row:last-child{border-bottom:none;}
+.suppl-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.suppl-name{font-size:13px;font-weight:500;color:var(--ink);}
+.suppl-detail{font-size:11px;color:var(--ink-soft);margin-top:2px;line-height:1.5;}
+.check-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.check-sec{background:var(--cream);border-radius:var(--r-sm);padding:10px 12px;border:1px solid var(--border-soft);}
+.check-sec-title{font-size:11px;font-weight:500;color:var(--ink-muted);margin-bottom:8px;}
+.ci{display:flex;align-items:center;gap:8px;padding:4px 0;font-size:12px;color:var(--ink);cursor:pointer;}
+.ci input{width:15px;height:15px;accent-color:var(--sage-dark);flex-shrink:0;}
+.ci.done span{text-decoration:line-through;color:var(--ink-muted);}
+.timeline{position:relative;padding-left:22px;}
+.tl-line{position:absolute;left:6px;top:10px;bottom:10px;width:1px;background:var(--border);}
+.tl-item{position:relative;margin-bottom:16px;}
+.tl-item:last-child{margin-bottom:0;}
+.tl-dot{position:absolute;left:-18px;top:4px;width:8px;height:8px;border-radius:50%;}
+.tl-time{font-size:11px;font-weight:500;color:var(--ink-muted);margin-bottom:1px;}
+.tl-name{font-size:13px;font-weight:500;color:var(--ink);}
+.tl-detail{font-size:11px;color:var(--ink-soft);margin-top:2px;line-height:1.5;}
+.week-row{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border-soft);flex-wrap:wrap;}
+.week-row:last-child{border-bottom:none;}
+.week-day{min-width:80px;font-size:12px;color:var(--ink-muted);}
+.shift-sel{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;}
+.sbtn{padding:7px 14px;border-radius:20px;border:1px solid var(--border);background:white;color:var(--ink-muted);font-size:12px;font-family:'DM Sans',sans-serif;cursor:pointer;}
+.sbtn.manana.active{background:var(--sage-dark);color:white;border-color:var(--sage-dark);font-weight:500;}
+.sbtn.tarde.active{background:var(--blue);color:white;border-color:var(--blue);font-weight:500;}
+.sbtn.libre.active{background:var(--purple);color:white;border-color:var(--purple);font-weight:500;}
+.eq-row{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--border-soft);font-size:12px;flex-wrap:wrap;}
+.eq-row:last-child{border-bottom:none;}
+.eq-a{color:var(--ink);flex:1;min-width:110px;}
+.eq-sep{color:var(--ink-muted);font-size:11px;flex-shrink:0;}
+.eq-b{color:var(--ink-soft);flex:1;min-width:110px;text-align:right;}
+.prep-block{border-left:2px solid var(--sage);padding-left:12px;margin-bottom:14px;}
+.prep-title{font-size:13px;font-weight:500;color:var(--sage-dark);margin-bottom:3px;}
+.prep-step{font-size:12px;color:var(--ink-soft);line-height:1.7;}
+.mtype-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;}
+.mtype{padding:7px 14px;border-radius:20px;border:1px solid var(--border);background:white;color:var(--ink-muted);font-size:12px;font-family:'DM Sans',sans-serif;cursor:pointer;}
+.mtype.D.sel{background:var(--sage-light);color:var(--sage-dark);border-color:var(--sage);font-weight:500;}
+.mtype.A.sel{background:var(--blue-light);color:var(--blue);border-color:#9fbfdf;font-weight:500;}
+.mtype.M.sel{background:var(--amber-light);color:var(--amber);border-color:#e0b070;font-weight:500;}
+.mtype.C.sel{background:var(--purple-light);color:var(--purple);border-color:#b8a8d8;font-weight:500;}
+.form-field{margin-bottom:10px;}
+.form-label{font-size:11px;font-weight:500;color:var(--ink-muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:5px;display:block;}
+.form-input{width:100%;font-size:13px;padding:10px 12px;border-radius:var(--r-sm);border:1px solid var(--border);background:var(--cream);color:var(--ink);font-family:'DM Sans',sans-serif;outline:none;-webkit-appearance:none;}
+.form-input:focus{border-color:var(--sage);}
+.form-grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.btn-primary{width:100%;padding:12px;border-radius:var(--r-sm);border:none;background:var(--ink);color:white;font-size:14px;font-family:'DM Sans',sans-serif;font-weight:500;cursor:pointer;margin-top:4px;}
+.feedback{font-size:12px;text-align:center;margin-top:8px;min-height:16px;}
+.log-item{display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid var(--border-soft);}
+.log-item:last-child{border-bottom:none;}
+.log-time{font-size:12px;font-weight:500;color:var(--ink-muted);min-width:38px;padding-top:1px;}
+.log-badge{font-size:10px;padding:2px 7px;border-radius:20px;font-weight:500;flex-shrink:0;margin-top:1px;}
+.log-what{font-size:13px;color:var(--ink);flex:1;line-height:1.4;}
+.log-note{font-size:11px;color:var(--ink-muted);margin-top:2px;}
+.del-btn{font-size:18px;color:var(--ink-muted);cursor:pointer;background:none;border:none;padding:0 4px;flex-shrink:0;line-height:1;}
+.empty{font-size:13px;color:var(--ink-muted);text-align:center;padding:24px 0;font-style:italic;}
+.stat-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:14px;}
+.stat-box{background:var(--cream);border-radius:var(--r-sm);padding:12px;text-align:center;border:1px solid var(--border-soft);}
+.stat-n{font-family:'Playfair Display',serif;font-size:28px;color:var(--ink);}
+.stat-l{font-size:11px;color:var(--ink-muted);margin-top:2px;}
+.export-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:12px;border-radius:var(--r-sm);border:1px solid var(--border);background:white;color:var(--ink);font-size:13px;font-family:'DM Sans',sans-serif;cursor:pointer;margin-top:8px;}
+.screen-title{font-family:'Playfair Display',serif;font-size:20px;font-weight:400;color:var(--ink);margin-bottom:4px;}
+.screen-sub{font-size:12px;color:var(--ink-muted);margin-bottom:20px;}
+</style>
+</head>
+<body>
+<div class="app-header">
+  <h1>Proyecto Paula 🌊</h1>
+  <p>Hart Bageri &middot; Dinamarca</p>
+</div>
+<div class="main">
+
+<!-- HOME -->
+<div id="sc-home" class="screen on">
+  <div class="screen-title">Hola 👋</div>
+  <p class="screen-sub">Tu guía de alimentación y hábitos</p>
+  <div class="card" style="background:linear-gradient(135deg,#E8F0E6 0%,#F5F2EC 100%);border-color:var(--sage-light);">
+    <div style="font-size:13px;color:var(--sage-dark);font-weight:500;margin-bottom:8px">🌿 Recordatorio del día</div>
+    <div style="font-size:13px;color:var(--ink-soft);line-height:1.6">4 comidas · 3 litros de agua · 12hs de reposo nocturno · sin harinas ni azúcar.</div>
+  </div>
+  <div class="card">
+    <div class="card-title"><span class="icon" style="background:var(--sage-light);color:var(--sage-dark)">🥗</span> Estructura del plato</div>
+    <div class="plate-row">
+      <div class="plate-seg"><div class="plate-circle" style="background:var(--sage-light);color:var(--sage-dark)">¼</div><div class="plate-lbl">Proteína</div></div>
+      <div class="plate-seg"><div class="plate-circle" style="background:var(--blue-light);color:var(--blue)">½</div><div class="plate-lbl">Vegetales</div></div>
+      <div class="plate-seg"><div class="plate-circle" style="background:var(--amber-light);color:var(--amber)">¼</div><div class="plate-lbl">Grasas</div></div>
+    </div>
+    <div class="row"><span class="row-label">Cocción</span><span class="row-val">Ghee o aceite de coco</span></div>
+    <div class="row"><span class="row-label">Aderezar</span><span class="row-val">Aceite de oliva · vinagre de manzana</span></div>
+    <div class="row"><span class="row-label">Frutas</span><span class="row-val">Solo desayuno/merienda · máx 2/día</span></div>
+    <div class="row"><span class="row-label">Evitar</span><span class="row-val">Papa · pasta · arroz · polenta · azúcar</span></div>
+  </div>
+  <div class="card">
+    <div class="card-title"><span class="icon" style="background:var(--blue-light);color:var(--blue)">📋</span> Reglas base</div>
+    <div class="habit-item"><div class="habit-dot" style="background:var(--sage-dark)"></div><div><div class="habit-text">4 comidas diarias</div><div class="habit-sub">Desayuno · Almuerzo · Merienda · Cena</div></div></div>
+    <div class="habit-item"><div class="habit-dot" style="background:var(--sage-dark)"></div><div><div class="habit-text">Entre comidas: 3–5 horas</div><div class="habit-sub">Sin picoteo</div></div></div>
+    <div class="habit-item"><div class="habit-dot" style="background:var(--blue)"></div><div><div class="habit-text">3 litros de agua por día</div><div class="habit-sub">Café, mate y té NO cuentan</div></div></div>
+    <div class="habit-item"><div class="habit-dot" style="background:var(--blue)"></div><div><div class="habit-text">Reposo digestivo: 12 horas</div><div class="habit-sub">Entre cena y desayuno</div></div></div>
+    <div class="habit-item"><div class="habit-dot" style="background:var(--amber)"></div><div><div class="habit-text">8 horas de sueño</div><div class="habit-sub">El estrés destruye más que cualquier déficit</div></div></div>
+    <div class="habit-item"><div class="habit-dot" style="background:var(--coral)"></div><div><div class="habit-text">Ejercicio todos los días</div><div class="habit-sub">Lo que puedas, pero moverse</div></div></div>
+  </div>
+</div>
+
+<!-- PLAN -->
+<div id="sc-plan" class="screen">
+  <div class="screen-title">Plan semanal</div>
+  <p class="screen-sub">Dos semanas para rotar</p>
+  <div class="tabs">
+    <button class="tab-btn active" onclick="showPlanTab('semA',this)">Semana A</button>
+    <button class="tab-btn" onclick="showPlanTab('semB',this)">Semana B</button>
+    <button class="tab-btn" onclick="showPlanTab('mealprep',this)">Meal prep</button>
+  </div>
+  <div id="semA">
+    <div class="day-sel"><button class="day-btn active" onclick="showDay('A','lun',this)">Lun</button><button class="day-btn" onclick="showDay('A','mar',this)">Mar</button><button class="day-btn" onclick="showDay('A','mie',this)">Mié</button><button class="day-btn" onclick="showDay('A','jue',this)">Jue</button><button class="day-btn" onclick="showDay('A','vie',this)">Vie</button><button class="day-btn" onclick="showDay('A','sab',this)">Sáb</button><button class="day-btn" onclick="showDay('A','dom',this)">Dom</button></div>
+    <div id="A-lun"><div class="meal-grid"><div class="mc"><div class="mc-time">Desayuno</div><div class="mc-name">Huevos + brócoli</div><div class="mc-detail">2 huevos en ghee + brócoli salteado + café</div></div><div class="mc"><div class="mc-time">Almuerzo</div><div class="mc-name">Bowl quinoa + pollo</div><div class="mc-detail">Quinoa (prep) + pechuga + zanahoria + wok vegs</div></div><div class="mc"><div class="mc-time">Merienda</div><div class="mc-name">Skyr + berries</div><div class="mc-detail">Skyr + frutos del bosque + almendras + chía</div></div><div class="mc"><div class="mc-time">Cena</div><div class="mc-name">Lentejas al curry</div><div class="mc-detail">Lentejas (prep) + leche de coco + cúrcuma + zanahoria</div></div></div><div class="note">💡 Día de prep: quinoa, lentejas, garbanzos y pechuga entera.</div></div>
+    <div id="A-mar" style="display:none"><div class="meal-grid"><div class="mc"><div class="mc-time">Desayuno</div><div class="mc-name">Tortilla + feta</div><div class="mc-detail">2 huevos + queso feta + cebolla + ghee + café</div></div><div class="mc"><div class="mc-time">Almuerzo</div><div class="mc-name">Atún + garbanzos</div><div class="mc-detail">Atún natural + garbanzos (prep) + zanahoria + limón</div></div><div class="mc"><div class="mc-time">Merienda</div><div class="mc-name">Almendras + fruta</div><div class="mc-detail">Puñado almendras + fruta congelada</div></div><div class="mc"><div class="mc-time">Cena</div><div class="mc-name">Costeletas + wok</div><div class="mc-detail">Costeletas de cerdo + wok vegs + ghee + ajo + cúrcuma</div><div class="mc-tag"><span class="badge b-green">compraste</span></div></div></div></div>
+    <div id="A-mie" style="display:none"><div class="meal-grid"><div class="mc"><div class="mc-time">Desayuno</div><div class="mc-name">Huevos + hongos</div><div class="mc-detail">2 huevos + hongos secos salteados en ghee + café</div></div><div class="mc"><div class="mc-time">Almuerzo</div><div class="mc-name">Bowl lentejas</div><div class="mc-detail">Lentejas (prep) + zanahoria + cebolla + sésamo</div></div><div class="mc"><div class="mc-time">Merienda</div><div class="mc-name">Skyr + semillas</div><div class="mc-detail">Skyr + chía + semillas de zapallo + berries</div></div><div class="mc"><div class="mc-time">Cena</div><div class="mc-name">Carne + brócoli</div><div class="mc-detail">Carne vacuna + brócoli al vapor + ghee + ajo</div></div></div></div>
+    <div id="A-jue" style="display:none"><div class="meal-grid"><div class="mc"><div class="mc-time">Desayuno</div><div class="mc-name">Omelette + philadelphia</div><div class="mc-detail">2 huevos + philadelphia + hongos + ghee + café</div></div><div class="mc"><div class="mc-time">Almuerzo</div><div class="mc-name">Garbanzos + huevo duro</div><div class="mc-detail">Garbanzos (prep) + huevo duro + zanahoria + feta + limón</div></div><div class="mc"><div class="mc-time">Merienda</div><div class="mc-name">Fruta + semillas</div><div class="mc-detail">Fruta congelada + semillas de zapallo + almendras</div></div><div class="mc"><div class="mc-time">Cena</div><div class="mc-name">Sopa lentejas</div><div class="mc-detail">Lentejas + pulpa tomate + carne + comino</div></div></div></div>
+    <div id="A-vie" style="display:none"><div class="meal-grid"><div class="mc"><div class="mc-time">Desayuno</div><div class="mc-name">Huevos + burrata</div><div class="mc-detail">2 huevos pochados + burrata + ghee + café</div></div><div class="mc"><div class="mc-time">Almuerzo</div><div class="mc-name">Atún + porotos</div><div class="mc-detail">Atún natural + porotos colorados + zanahoria + pimentón</div></div><div class="mc"><div class="mc-time">Merienda</div><div class="mc-name">Skyr + almendras</div><div class="mc-detail">Skyr + almendras + chía + fruta congelada</div></div><div class="mc"><div class="mc-time">Cena</div><div class="mc-name">Camarones al ajillo</div><div class="mc-detail">Camarones + ajo + pimentón + ghee + brócoli</div></div></div><div class="note">⚠️ Congelar hoy lo que sobre de lentejas o garbanzos.</div></div>
+    <div id="A-sab" style="display:none"><div class="meal-grid"><div class="mc"><div class="mc-time">Desayuno</div><div class="mc-name">Tortilla completa</div><div class="mc-detail">3 huevos + feta o philadelphia + hongos + café</div></div><div class="mc"><div class="mc-time">Almuerzo</div><div class="mc-name">Costeletas al horno</div><div class="mc-detail">Costeletas + wok vegs + ajo + cúrcuma</div><div class="mc-tag"><span class="badge b-green">compraste</span></div></div><div class="mc"><div class="mc-time">Merienda</div><div class="mc-name">Fruta + nueces</div><div class="mc-detail">Fruta congelada + almendras + sésamo</div></div><div class="mc"><div class="mc-time">Cena</div><div class="mc-name">Garbanzos al curry</div><div class="mc-detail">Garbanzos + leche de coco + pulpa de tomate + cúrcuma</div></div></div></div>
+    <div id="A-dom" style="display:none"><div class="meal-grid"><div class="mc"><div class="mc-time">Desayuno</div><div class="mc-name">Huevos al plato</div><div class="mc-detail">2 huevos en ghee + sésamo + café</div></div><div class="mc"><div class="mc-time">Almuerzo</div><div class="mc-name">Carne + ensalada</div><div class="mc-detail">Carne vacuna + lechuga + zanahoria + feta + aceite de oliva</div></div><div class="mc"><div class="mc-time">Merienda</div><div class="mc-name">Skyr + fruta</div><div class="mc-detail">Skyr + fruta congelada + almendras</div></div><div class="mc"><div class="mc-time">Cena</div><div class="mc-name">Sopa garbanzos</div><div class="mc-detail">Garbanzos + pulpa tomate + zanahoria + cúrcuma</div></div></div><div class="note">🕐 Dejar lentejas y garbanzos en remojo para el lunes.</div></div>
+  </div>
+  <div id="semB" style="display:none">
+    <div class="day-sel"><button class="day-btn active" onclick="showDay('B','lun',this)">Lun</button><button class="day-btn" onclick="showDay('B','mar',this)">Mar</button><button class="day-btn" onclick="showDay('B','mie',this)">Mié</button><button class="day-btn" onclick="showDay('B','jue',this)">Jue</button><button class="day-btn" onclick="showDay('B','vie',this)">Vie</button><button class="day-btn" onclick="showDay('B','sab',this)">Sáb</button><button class="day-btn" onclick="showDay('B','dom',this)">Dom</button></div>
+    <div id="B-lun"><div class="meal-grid"><div class="mc"><div class="mc-time">Desayuno</div><div class="mc-name">Pudding de chía</div><div class="mc-detail">3 cdas chía + leche de coco + berries. Prep noche anterior.</div><div class="mc-tag"><span class="badge b-green">nutricionista</span></div></div><div class="mc"><div class="mc-time">Almuerzo</div><div class="mc-name">Ensalada lentejas</div><div class="mc-detail">Lentejas (prep) + brócoli + zanahoria + aceite de oliva + limón</div><div class="mc-tag"><span class="badge b-green">nutricionista</span></div></div><div class="mc"><div class="mc-time">Merienda</div><div class="mc-name">Rolls de jamón</div><div class="mc-detail">2-3 fetas jamón enrolladas + almendras</div><div class="mc-tag"><span class="badge b-green">nutricionista</span></div></div><div class="mc"><div class="mc-time">Cena</div><div class="mc-name">Revuelto garbanzos</div><div class="mc-detail">Garbanzos (prep) + 2 huevos + curry + ghee</div><div class="mc-tag"><span class="badge b-green">nutricionista</span></div></div></div><div class="note">💡 Preparar el pudding de chía esta noche para mañana también.</div></div>
+    <div id="B-mar" style="display:none"><div class="meal-grid"><div class="mc"><div class="mc-time">Desayuno</div><div class="mc-name">Huevos + hongos + nueces</div><div class="mc-detail">2 huevos + hongos secos + nueces + café</div></div><div class="mc"><div class="mc-time">Almuerzo</div><div class="mc-name">Spaghetti zucchini</div><div class="mc-detail">Zucchini en tiras + boloñesa carne + pulpa tomate</div><div class="mc-tag"><span class="badge b-sage">compraste</span></div></div><div class="mc"><div class="mc-time">Merienda</div><div class="mc-name">Skyr + manzana</div><div class="mc-detail">Skyr + manzana verde + 5 almendras</div></div><div class="mc"><div class="mc-time">Cena</div><div class="mc-name">Tortilla de atún</div><div class="mc-detail">2 huevos + atún natural + queso feta</div><div class="mc-tag"><span class="badge b-green">nutricionista</span></div></div></div></div>
+    <div id="B-mie" style="display:none"><div class="meal-grid"><div class="mc"><div class="mc-time">Desayuno</div><div class="mc-name">Skyr coco + almendras</div><div class="mc-detail">Skyr + splash leche de coco + almendras + berries</div><div class="mc-tag"><span class="badge b-green">nutricionista</span></div></div><div class="mc"><div class="mc-time">Almuerzo</div><div class="mc-name">Pollo + zanahoria</div><div class="mc-detail">Pechuga en tiras + zanahoria rallada + sésamo + limón</div></div><div class="mc"><div class="mc-time">Merienda</div><div class="mc-name">Fruta + semillas</div><div class="mc-detail">Fruta congelada + semillas de zapallo + chía</div></div><div class="mc"><div class="mc-time">Cena</div><div class="mc-name">Omelette + porotos</div><div class="mc-detail">2 huevos + porotos colorados + sofrito + cúrcuma</div><div class="mc-tag"><span class="badge b-green">nutricionista</span></div></div></div></div>
+    <div id="B-jue" style="display:none"><div class="meal-grid"><div class="mc"><div class="mc-time">Desayuno</div><div class="mc-name">Pudding de chía</div><div class="mc-detail">Pudding prep anoche + berries + almendras + café</div><div class="mc-tag"><span class="badge b-green">nutricionista</span></div></div><div class="mc"><div class="mc-time">Almuerzo</div><div class="mc-name">Filete + vegs</div><div class="mc-detail">Pechuga o carne al horno + zanahoria + cebolla</div><div class="mc-tag"><span class="badge b-green">nutricionista</span></div></div><div class="mc"><div class="mc-time">Merienda</div><div class="mc-name">Rolls + feta</div><div class="mc-detail">2 rolls de jamón + cubos de queso feta</div><div class="mc-tag"><span class="badge b-green">nutricionista</span></div></div><div class="mc"><div class="mc-time">Cena</div><div class="mc-name">Garbanzos + palta</div><div class="mc-detail">Garbanzos + palta + huevo duro + nueces + limón</div><div class="mc-tag"><span class="badge b-sage">compraste</span></div></div></div></div>
+    <div id="B-vie" style="display:none"><div class="meal-grid"><div class="mc"><div class="mc-time">Desayuno</div><div class="mc-name">Huevos + mix semillas</div><div class="mc-detail">2 huevos revueltos + mix sésamo + zapallo + chía</div><div class="mc-tag"><span class="badge b-green">nutricionista</span></div></div><div class="mc"><div class="mc-time">Almuerzo</div><div class="mc-name">Atún + garbanzos + palta</div><div class="mc-detail">Atún + garbanzos + palta + zanahoria + aceite de oliva</div><div class="mc-tag"><span class="badge b-sage">compraste</span></div></div><div class="mc"><div class="mc-time">Merienda</div><div class="mc-name">Skyr + fruta</div><div class="mc-detail">Skyr + fruta congelada + almendras</div></div><div class="mc"><div class="mc-time">Cena</div><div class="mc-name">Costeletas + hongos</div><div class="mc-detail">Costeletas + hongos secos + wok vegs + ghee + ajo</div><div class="mc-tag"><span class="badge b-sage">compraste</span></div></div></div></div>
+    <div id="B-sab" style="display:none"><div class="meal-grid"><div class="mc"><div class="mc-time">Desayuno</div><div class="mc-name">Huevos + burrata + hongos</div><div class="mc-detail">2 huevos + burrata + hongos salteados en ghee</div></div><div class="mc"><div class="mc-time">Almuerzo</div><div class="mc-name">Carne al horno</div><div class="mc-detail">Medallón de vaca + brócoli + zanahoria + cúrcuma</div></div><div class="mc"><div class="mc-time">Merienda</div><div class="mc-name">Pudding express</div><div class="mc-detail">Chía + leche de coco + berries. Prep 30 min antes.</div><div class="mc-tag"><span class="badge b-green">nutricionista</span></div></div><div class="mc"><div class="mc-time">Cena</div><div class="mc-name">Tortilla de espinaca</div><div class="mc-detail">3 huevos + brócoli + philadelphia + ghee</div><div class="mc-tag"><span class="badge b-green">nutricionista</span></div></div></div></div>
+    <div id="B-dom" style="display:none"><div class="meal-grid"><div class="mc"><div class="mc-time">Desayuno</div><div class="mc-name">Huevos + feta</div><div class="mc-detail">2 huevos revueltos + feta + sésamo + café</div></div><div class="mc"><div class="mc-time">Almuerzo</div><div class="mc-name">Pollo a la plancha</div><div class="mc-detail">Pechuga + tomates cherry + zanahoria. Cocinar extra.</div><div class="mc-tag"><span class="badge b-sage">compraste</span></div></div><div class="mc"><div class="mc-time">Merienda</div><div class="mc-name">Rolls + skyr</div><div class="mc-detail">2 rolls jamón + skyr con chía</div><div class="mc-tag"><span class="badge b-green">nutricionista</span></div></div><div class="mc"><div class="mc-time">Cena</div><div class="mc-name">Lentejas al curry</div><div class="mc-detail">Lentejas + leche de coco + cúrcuma + cebolla + zanahoria</div></div></div><div class="note">🕐 Preparar pudding de chía para el lunes.</div></div>
+  </div>
+  <div id="mealprep" style="display:none">
+    <div class="card">
+      <div class="card-title"><span class="icon" style="background:var(--sage-light);color:var(--sage-dark)">⏱</span> Prep del lunes (~60 min)</div>
+      <div class="prep-block"><div class="prep-title">Pechuga de pollo</div><div class="prep-step">Sellar en sartén + horno 20 min a 180° · enfriar · cortar en tiras. Dura 4 días o congelar.</div></div>
+      <div class="prep-block"><div class="prep-title">Quinoa (semana A)</div><div class="prep-step">2 tazas en 4 agua · 15 min · enfriar · tupper. Dura 5 días.</div></div>
+      <div class="prep-block"><div class="prep-title">Lentejas</div><div class="prep-step">2 tazas en agua con laurel · 20-25 min · escurrir. Congelar mitad.</div></div>
+      <div class="prep-block"><div class="prep-title">Garbanzos</div><div class="prep-step">Remojar desde el domingo · 45-60 min · escurrir. Congelar el viernes lo que sobre.</div></div>
+      <div class="prep-block"><div class="prep-title">Zanahoria rallada</div><div class="prep-step">Rallar 3-4 zanahorias · tupper con tapa · dura 4-5 días.</div></div>
+      <div class="prep-block"><div class="prep-title">Huevos duros x4</div><div class="prep-step">Hervir 10 min · enfriar · guardar con cáscara hasta 5 días.</div></div>
+      <div class="prep-block" style="border-color:var(--green-soft)"><div class="prep-title" style="color:var(--green-text)">Pudding de chía (semana B)</div><div class="prep-step">3 cdas chía + 200ml leche de coco + stevia · mezclar · heladera mínimo 4hs. Preparar la noche anterior.</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- TURNOS -->
+<div id="sc-turnos" class="screen">
+  <div class="screen-title">Mis turnos</div>
+  <p class="screen-sub">Hart Bageri · mayo-junio 2026</p>
+  <div class="shift-sel">
+    <button class="sbtn manana active" onclick="showShift('manana',this)">🌅 Apertura</button>
+    <button class="sbtn tarde" onclick="showShift('tarde',this)">☀️ Tarde</button>
+    <button class="sbtn libre" onclick="showShift('libre',this)">🏠 Libre</button>
+  </div>
+  <div id="sh-manana">
+    <div class="card">
+      <div class="card-title"><span class="icon" style="background:var(--sage-light);color:var(--sage-dark)">🌅</span> Turno apertura — 06:15/06:30</div>
+      <div class="timeline"><div class="tl-line"></div>
+        <div class="tl-item"><div class="tl-dot" style="background:#ccc"></div><div class="tl-time">~05:30 salís de casa</div><div class="tl-name">Solo café si querés</div></div>
+        <div class="tl-item"><div class="tl-dot" style="background:var(--sage-dark)"></div><div class="tl-time">~09:00 trabajo (5 min)</div><div class="tl-name">Desayuno</div><div class="tl-detail">Skyr + berries + frutos secos. O rolls de jamón.</div><div style="margin-top:4px"><span class="badge b-sage">te proveen</span></div></div>
+        <div class="tl-item"><div class="tl-dot" style="background:var(--blue)"></div><div class="tl-time">~12:30 break</div><div class="tl-name">Almuerzo</div><div class="tl-detail">Jamón + lechuga + tomate cherry + pepino + palta + queso.</div><div style="margin-top:4px"><span class="badge b-blue">te proveen</span></div></div>
+        <div class="tl-item"><div class="tl-dot" style="background:var(--sage-dark)"></div><div class="tl-time">~15:30 llegás a casa</div><div class="tl-name">Merienda</div><div class="tl-detail">Skyr + fruta congelada + almendras.</div></div>
+        <div class="tl-item"><div class="tl-dot" style="background:var(--purple)"></div><div class="tl-time">~19:30</div><div class="tl-name">Cena</div><div class="tl-detail">Meal prep listo. Sin cocinar desde cero.</div></div>
+      </div>
+      <div class="note">🌙 Cena 19:30 → desayuno 9:00 = 13.5hs de reposo. Perfecto.</div>
+    </div>
+  </div>
+  <div id="sh-tarde" style="display:none">
+    <div class="card">
+      <div class="card-title"><span class="icon" style="background:var(--blue-light);color:var(--blue)">☀️</span> Turno tarde / closing — 12:00-13:00</div>
+      <div class="timeline"><div class="tl-line"></div>
+        <div class="tl-item"><div class="tl-dot" style="background:var(--sage-dark)"></div><div class="tl-time">~08:30 en casa</div><div class="tl-name">Desayuno tranquila</div><div class="tl-detail">Huevos + vegetales + café. O pudding de chía.</div></div>
+        <div class="tl-item"><div class="tl-dot" style="background:var(--blue)"></div><div class="tl-time">~14:30 break</div><div class="tl-name">Almuerzo</div><div class="tl-detail">Atún o jamón + ensalada del trabajo.</div><div style="margin-top:4px"><span class="badge b-blue">te proveen</span></div></div>
+        <div class="tl-item"><div class="tl-dot" style="background:var(--amber)"></div><div class="tl-time">~17:30 si hay 2do break</div><div class="tl-name">Merienda ligera</div><div class="tl-detail">Skyr + berries. Solo si el turno es largo.</div><div style="margin-top:4px"><span class="badge b-amber">te proveen</span></div></div>
+        <div class="tl-item"><div class="tl-dot" style="background:var(--purple)"></div><div class="tl-time">~21:00 llegás a casa</div><div class="tl-name">Cena</div><div class="tl-detail">Meal prep listo. Sin cocinar desde cero.</div></div>
+      </div>
+      <div class="note">⚠️ Si cenás después de las 21hs y mañana entrás de apertura, intentá cenar antes para las 12hs de reposo.</div>
+    </div>
+  </div>
+  <div id="sh-libre" style="display:none">
+    <div class="card">
+      <div class="card-title"><span class="icon" style="background:var(--purple-light);color:var(--purple)">🏠</span> Día libre — horario ideal</div>
+      <div class="timeline"><div class="tl-line"></div>
+        <div class="tl-item"><div class="tl-dot" style="background:var(--sage-dark)"></div><div class="tl-time">08:00–09:30</div><div class="tl-name">Desayuno</div><div class="tl-detail">Tortilla, huevos con hongos, o pudding de chía.</div></div>
+        <div class="tl-item"><div class="tl-dot" style="background:var(--blue)"></div><div class="tl-time">12:30–14:00</div><div class="tl-name">Almuerzo</div><div class="tl-detail">Bowl de legumbres + proteína del meal prep.</div></div>
+        <div class="tl-item"><div class="tl-dot" style="background:var(--amber)"></div><div class="tl-time">16:00–17:00</div><div class="tl-name">Merienda</div><div class="tl-detail">Skyr + fruta + almendras. O rolls de jamón.</div></div>
+        <div class="tl-item"><div class="tl-dot" style="background:var(--purple)"></div><div class="tl-time">19:30–20:30</div><div class="tl-name">Cena</div><div class="tl-detail">Comida caliente. Buen momento para algo nuevo.</div></div>
+      </div>
+      <div class="note">💡 Si el día libre cae lunes, hacé el meal prep de la semana.</div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title"><span class="icon" style="background:var(--cream-dark);color:var(--ink-soft)">📅</span> Próximos turnos</div>
+    <div class="week-row"><span class="week-day">Dom 24/5</span><span class="badge b-blue">08:30–15:00 floater</span></div>
+    <div class="week-row"><span class="week-day">Lun 25/5</span><span class="badge b-blue">10:00–18:00 floater</span></div>
+    <div class="week-row"><span class="week-day">Mié 27/5</span><span class="badge b-sage">06:15–14:00 apertura</span></div>
+    <div class="week-row"><span class="week-day">Jue 28/5</span><span class="badge b-blue">08:00–16:30 floater</span></div>
+    <div class="week-row"><span class="week-day">Vie 29/5</span><span class="badge b-amber">13:00–19:30 closing</span></div>
+    <div class="week-row"><span class="week-day">Sáb 30/5</span><span class="badge b-sage">06:30–13:30 apertura</span></div>
+    <div class="week-row"><span class="week-day">Lun 1/6</span><span class="badge b-sage">06:15–14:00 apertura</span></div>
+    <div class="week-row"><span class="week-day">Mar 2/6</span><span class="badge b-amber">13:00–20:00 closing</span></div>
+    <div class="week-row"><span class="week-day">Vie 5/6</span><span class="badge b-amber">13:00–19:30 closing</span></div>
+    <div class="week-row"><span class="week-day">Dom 7/6</span><span class="badge b-sage">06:30–14:00 apertura</span></div>
+    <div class="week-row"><span class="week-day">Mié 10/6</span><span class="badge b-amber">12:00–20:00 closing</span></div>
+    <div class="week-row"><span class="week-day">Jue 11/6</span><span class="badge b-blue">08:00–17:00 floater</span></div>
+    <div class="week-row"><span class="week-day">Vie 12/6</span><span class="badge b-amber">13:00–19:30 closing</span></div>
+    <div class="week-row"><span class="week-day">Sáb 13/6</span><span class="badge b-sage">06:30–14:00 apertura</span></div>
+  </div>
+</div>
+
+<!-- EXTRAS -->
+<div id="sc-extras" class="screen">
+  <div class="screen-title">Extras</div>
+  <p class="screen-sub">Suplementos · equivalencias · compras</p>
+  <div class="tabs">
+    <button class="tab-btn active" onclick="showExtrasTab('suppl',this)">Suplementos</button>
+    <button class="tab-btn" onclick="showExtrasTab('equiv',this)">Equivalencias</button>
+    <button class="tab-btn" onclick="showExtrasTab('compras',this)">Compras</button>
+  </div>
+  <div id="suppl">
+    <div class="card">
+      <div class="suppl-row"><div class="suppl-icon" style="background:var(--sage-light);color:var(--sage-dark)">🍋</div><div><div class="suppl-name">Vitamina C</div><div class="suppl-detail">1g/día · 2 tomas de 500mg · antioxidante, colágeno.</div><div style="margin-top:4px"><span class="badge b-sage">mañana y tarde</span></div></div></div>
+      <div class="suppl-row"><div class="suppl-icon" style="background:var(--purple-light);color:var(--purple)">🌙</div><div><div class="suppl-name">Magnesio</div><div class="suppl-detail">200–400mg/día · Glicinato → sueño · Malato → energía · Citrato → constipación.</div><div style="margin-top:4px"><span class="badge b-purple">glicinato noche · malato mañana</span></div></div></div>
+      <div class="suppl-row"><div class="suppl-icon" style="background:var(--blue-light);color:var(--blue)">🐟</div><div><div class="suppl-name">Omega 3 (ya tenés)</div><div class="suppl-detail">Verificar EPA+DHA &ge; 1g por dosis. Guardar en heladera.</div><div style="margin-top:4px"><span class="badge b-blue">con comidas · 2 tomas</span></div></div></div>
+      <div class="suppl-row"><div class="suppl-icon" style="background:var(--amber-light);color:var(--amber)">☀️</div><div><div class="suppl-name">Vitamina D3 + K2</div><div class="suppl-detail">2000–5000 UI/día · con comida con grasas · medir en sangre (óptimo 40–60). Clave en Dinamarca.</div><div style="margin-top:4px"><span class="badge b-amber">con almuerzo o cena</span></div></div></div>
+      <div class="suppl-row"><div class="suppl-icon" style="background:var(--sage-light);color:var(--sage-dark)">🦠</div><div><div class="suppl-name">Probióticos</div><div class="suppl-detail">1 vez/día · con o sin comida · puede inflamar levemente al inicio.</div><div style="margin-top:4px"><span class="badge b-sage">1 vez por día</span></div></div></div>
+      <div class="suppl-row"><div class="suppl-icon" style="background:var(--coral-light);color:var(--coral)">⚡</div><div><div class="suppl-name">Creatina</div><div class="suppl-detail">3g/día si &lt;55kg · 5g si 55kg+. Monohidrato (Creapure).</div><div style="margin-top:4px"><span class="badge b-coral">cualquier momento</span></div></div></div>
+    </div>
+    <div class="note">Menos suplementos, bien elegidos. Los hábitos siguen siendo la base.</div>
+  </div>
+  <div id="equiv" style="display:none">
+    <div class="card"><div class="card-title"><span class="icon" style="background:var(--amber-light);color:var(--amber)">🔄</span> Grasas (10g)</div><div class="eq-row"><span class="eq-a">10g aceite de oliva</span><span class="eq-sep">=</span><span class="eq-b">10g ghee / coco</span></div><div class="eq-row"><span class="eq-a">50g palta</span><span class="eq-sep">=</span><span class="eq-b">10g manteca / ghee</span></div><div class="eq-row"><span class="eq-a">50ml leche de coco</span><span class="eq-sep">=</span><span class="eq-b">75g guacamole</span></div><div class="eq-row"><span class="eq-a">15-20g almendras (7-8)</span><span class="eq-sep">=</span><span class="eq-b">20-25g queso curado</span></div></div>
+    <div class="card"><div class="card-title"><span class="icon" style="background:var(--sage-light);color:var(--sage-dark)">🔄</span> Proteína (30g)</div><div class="eq-row"><span class="eq-a">150g pollo / vaca / cerdo</span><span class="eq-sep">=</span><span class="eq-b">equivalentes entre sí</span></div><div class="eq-row"><span class="eq-a">3-4 huevos</span><span class="eq-sep">=</span><span class="eq-b">4 skyr / yogures</span></div><div class="eq-row"><span class="eq-a">1 lata de legumbres</span><span class="eq-sep">=</span><span class="eq-b">2 huevos + 75g pechuga</span></div><div class="eq-row"><span class="eq-a">100g jamón natural</span><span class="eq-sep">=</span><span class="eq-b">250g queso fresco</span></div></div>
+    <div class="card"><div class="card-title"><span class="icon" style="background:var(--blue-light);color:var(--blue)">↔️</span> Reemplazos rápidos</div><div class="row"><span class="row-label">Sin palta</span><span class="row-val">Frutos secos · ghee extra</span></div><div class="row"><span class="row-label">Sin feta</span><span class="row-val">Philadelphia · burrata · havgus</span></div><div class="row"><span class="row-label">Sin pollo</span><span class="row-val">Vaca o cerdo, misma cantidad</span></div><div class="row"><span class="row-label">Sin atún</span><span class="row-val">2 huevos + 75g pechuga</span></div><div class="row"><span class="row-label">Sin leche de coco</span><span class="row-val">Skyr solo · ghee para cocinar</span></div><div class="row"><span class="row-label">Sin legumbres</span><span class="row-val">2 huevos extra · más proteína</span></div></div>
+  </div>
+  <div id="compras" style="display:none">
+    <div class="note" style="margin-bottom:12px">✅ Compraste: costeletas · atún · zucchini · palta · tomates cherry · fruta congelada.</div>
+    <div class="check-grid">
+      <div class="check-sec"><div class="check-sec-title">🥩 Proteínas</div>
+        <label class="ci"><input type="checkbox" checked onchange="toggleCI(this)"><span>Costeletas de cerdo</span></label>
+        <label class="ci"><input type="checkbox" checked onchange="toggleCI(this)"><span>Atún en lata x4</span></label>
+        <label class="ci"><input type="checkbox" onchange="toggleCI(this)"><span>Carne vacuna</span></label>
+        <label class="ci"><input type="checkbox" onchange="toggleCI(this)"><span>Huevos x12</span></label>
+        <label class="ci"><input type="checkbox" onchange="toggleCI(this)"><span>Skyr natural x2</span></label>
+        <label class="ci"><input type="checkbox" onchange="toggleCI(this)"><span>Salmón (opcional)</span></label>
+      </div>
+      <div class="check-sec"><div class="check-sec-title">🥦 Vegetales</div>
+        <label class="ci"><input type="checkbox" checked onchange="toggleCI(this)"><span>Zucchini x2</span></label>
+        <label class="ci"><input type="checkbox" checked onchange="toggleCI(this)"><span>Palta</span></label>
+        <label class="ci"><input type="checkbox" checked onchange="toggleCI(this)"><span>Tomates cherry</span></label>
+        <label class="ci"><input type="checkbox" onchange="toggleCI(this)"><span>Lechuga / rúcula</span></label>
+        <label class="ci"><input type="checkbox" onchange="toggleCI(this)"><span>Pepino</span></label>
+        <label class="ci"><input type="checkbox" onchange="toggleCI(this)"><span>Limones x5</span></label>
+        <label class="ci"><input type="checkbox" onchange="toggleCI(this)"><span>Ajo</span></label>
+      </div>
+      <div class="check-sec"><div class="check-sec-title">🧊 Congelados</div>
+        <label class="ci"><input type="checkbox" checked onchange="toggleCI(this)"><span>Fruta congelada</span></label>
+        <label class="ci"><input type="checkbox" onchange="toggleCI(this)"><span>Wok vegs</span></label>
+      </div>
+      <div class="check-sec"><div class="check-sec-title">🌿 Despensa</div>
+        <label class="ci"><input type="checkbox" onchange="toggleCI(this)"><span>Vinagre manzana</span></label>
+        <label class="ci"><input type="checkbox" onchange="toggleCI(this)"><span>Pulpa tomate x2</span></label>
+        <label class="ci"><input type="checkbox" onchange="toggleCI(this)"><span>Aceitunas</span></label>
+        <label class="ci"><input type="checkbox" onchange="toggleCI(this)"><span>Stevia líquida</span></label>
+      </div>
+      <div class="check-sec"><div class="check-sec-title">💊 Suplementos</div>
+        <label class="ci"><input type="checkbox" onchange="toggleCI(this)"><span>Magnesio glicinato</span></label>
+        <label class="ci"><input type="checkbox" onchange="toggleCI(this)"><span>Vitamina C 1000mg</span></label>
+        <label class="ci"><input type="checkbox" onchange="toggleCI(this)"><span>Vitamina D3 + K2</span></label>
+        <label class="ci"><input type="checkbox" onchange="toggleCI(this)"><span>Probiótico</span></label>
+        <label class="ci"><input type="checkbox" onchange="toggleCI(this)"><span>Creatina monohidrato</span></label>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- REGISTRO -->
+<div id="sc-registro" class="screen">
+  <div class="screen-title">Registro</div>
+  <p class="screen-sub">Anotá qué y cuándo comés</p>
+  <div class="tabs">
+    <button class="tab-btn active" onclick="showRegTab('rr',this)">Registrar</button>
+    <button class="tab-btn" onclick="showRegTab('rh',this)">Historial</button>
+    <button class="tab-btn" onclick="showRegTab('rs',this)">Resumen</button>
+  </div>
+  <div id="rr">
+    <div class="card">
+      <div class="sec-label">Tipo de comida</div>
+      <div class="mtype-row">
+        <button class="mtype D" onclick="selType(this,'D')">Desayuno</button>
+        <button class="mtype A" onclick="selType(this,'A')">Almuerzo</button>
+        <button class="mtype M" onclick="selType(this,'M')">Merienda</button>
+        <button class="mtype C" onclick="selType(this,'C')">Cena</button>
+      </div>
+      <div class="form-grid2">
+        <div class="form-field"><label class="form-label">Hora</label><input type="time" id="inp-time" class="form-input"></div>
+        <div class="form-field"><label class="form-label">Día</label><select id="inp-day" class="form-input"><option>Lunes</option><option>Martes</option><option>Miércoles</option><option>Jueves</option><option>Viernes</option><option>Sábado</option><option>Domingo</option></select></div>
+      </div>
+      <div class="form-field"><label class="form-label">Qué comiste</label><input type="text" id="inp-what" class="form-input" placeholder="ej: 2 huevos + tomates cherry + palta"></div>
+      <div class="form-field"><label class="form-label">Nota (opcional)</label><input type="text" id="inp-note" class="form-input" placeholder="ej: me sentí bien, quedé con hambre..."></div>
+      <button class="btn-primary" onclick="addEntry()">+ Agregar</button>
+      <div class="feedback" id="add-fb"></div>
+    </div>
+    <div class="card"><div class="card-title"><span id="today-lbl">Hoy</span></div><div id="today-list"></div></div>
+  </div>
+  <div id="rh" style="display:none">
+    <div class="day-sel" id="hist-days" style="margin-bottom:12px"></div>
+    <div class="card"><div id="hist-list"></div></div>
+  </div>
+  <div id="rs" style="display:none">
+    <div class="card">
+      <div class="card-title">Esta semana</div>
+      <div class="stat-grid">
+        <div class="stat-box"><div class="stat-n" id="s-total">0</div><div class="stat-l">entradas</div></div>
+        <div class="stat-box"><div class="stat-n" id="s-days">0</div><div class="stat-l">días registrados</div></div>
+        <div class="stat-box"><div class="stat-n" id="s-4com">0</div><div class="stat-l">días completos</div></div>
+        <div class="stat-box"><div class="stat-n" id="s-avg">—</div><div class="stat-l">comidas/día</div></div>
+      </div>
+      <div id="res-bd"></div>
+    </div>
+    <div class="card"><div class="card-title">Horarios frecuentes</div><div id="res-times"></div></div>
+    <button class="export-btn" onclick="exportCSV()">⬇️ Exportar registro a CSV</button>
+  </div>
+</div>
+
+</div>
+<nav class="bottom-nav">
+  <button class="nav-item active" onclick="showScreen('home',this)"><span class="nav-icon">🏠</span>Inicio</button>
+  <button class="nav-item" onclick="showScreen('plan',this)"><span class="nav-icon">🥗</span>Plan</button>
+  <button class="nav-item" onclick="showScreen('turnos',this)"><span class="nav-icon">📅</span>Turnos</button>
+  <button class="nav-item" onclick="showScreen('extras',this)"><span class="nav-icon">💊</span>Extras</button>
+  <button class="nav-item" onclick="showScreen('registro',this)"><span class="nav-icon">✏️</span>Registro</button>
+</nav>
+<script>
+const DAYS=["Lunes","Martes","Miércoles","Jueves","Viernes","Sábado","Domingo"];
+const TL={D:"Desayuno",A:"Almuerzo",M:"Merienda",C:"Cena"};
+const TC={D:{bg:"#E8F0E6",c:"#5A7A55"},A:{bg:"#E3EDF8",c:"#3A6EA8"},M:{bg:"#FBF0E3",c:"#C8873A"},C:{bg:"#EEE8F8",c:"#7A5FA8"}};
+let entries=[];try{entries=JSON.parse(localStorage.getItem("ps_log")||"[]");}catch(e){}
+let selMT=null;
+function save(){try{localStorage.setItem("ps_log",JSON.stringify(entries));}catch(e){}}
+function showScreen(id,el){document.querySelectorAll(".screen").forEach(s=>s.classList.remove("on"));document.querySelectorAll(".nav-item").forEach(n=>n.classList.remove("active"));document.getElementById("sc-"+id).classList.add("on");el.classList.add("active");if(id==="registro"){renderToday();renderHistDays();renderResumen();}window.scrollTo(0,0);}
+function showPlanTab(id,el){["semA","semB","mealprep"].forEach(t=>{const e=document.getElementById(t);if(e)e.style.display=t===id?"block":"none";});document.querySelectorAll("#sc-plan .tab-btn").forEach(b=>b.classList.remove("active"));el.classList.add("active");}
+function showDay(sem,id,el){["lun","mar","mie","jue","vie","sab","dom"].forEach(d=>{const e=document.getElementById(sem+"-"+d);if(e)e.style.display=d===id?"block":"none";});el.closest(".day-sel").querySelectorAll(".day-btn").forEach(b=>b.classList.remove("active"));el.classList.add("active");}
+function showShift(id,el){["manana","tarde","libre"].forEach(s=>{const e=document.getElementById("sh-"+s);if(e)e.style.display=s===id?"block":"none";});document.querySelectorAll(".sbtn").forEach(b=>b.classList.remove("active"));el.classList.add("active");}
+function showExtrasTab(id,el){["suppl","equiv","compras"].forEach(t=>{const e=document.getElementById(t);if(e)e.style.display=t===id?"block":"none";});document.querySelectorAll("#sc-extras .tab-btn").forEach(b=>b.classList.remove("active"));el.classList.add("active");}
+function selType(el,t){document.querySelectorAll(".mtype").forEach(m=>m.classList.remove("sel"));el.classList.add("sel");selMT=t;}
+function addEntry(){const time=document.getElementById("inp-time").value;const day=document.getElementById("inp-day").value;const what=document.getElementById("inp-what").value.trim();const note=document.getElementById("inp-note").value.trim();const fb=document.getElementById("add-fb");if(!selMT){fb.style.color="#B85A3A";fb.textContent="Seleccioná el tipo de comida";return;}if(!time){fb.style.color="#B85A3A";fb.textContent="Agregá la hora";return;}if(!what){fb.style.color="#B85A3A";fb.textContent="Escribí qué comiste";return;}entries.push({id:Date.now(),day,time,type:selMT,what,note});entries.sort((a,b)=>a.day===b.day?a.time.localeCompare(b.time):DAYS.indexOf(a.day)-DAYS.indexOf(b.day));save();document.getElementById("inp-what").value="";document.getElementById("inp-note").value="";document.getElementById("inp-time").value="";document.querySelectorAll(".mtype").forEach(m=>m.classList.remove("sel"));selMT=null;fb.style.color="#5A7A55";fb.textContent="✓ Registrado";setTimeout(()=>fb.textContent="",2000);renderToday();renderHistDays();renderResumen();}
+function delEntry(id){entries=entries.filter(e=>e.id!==id);save();renderToday();renderHistDays();renderResumen();}
+function renderE(e){const c=TC[e.type]||TC.D;return`<div class="log-item"><span class="log-time">${e.time}</span><span class="log-badge" style="background:${c.bg};color:${c.c}">${TL[e.type]}</span><div style="flex:1"><div class="log-what">${e.what}</div>${e.note?`<div class="log-note">${e.note}</div>`:""}</div><button class="del-btn" onclick="delEntry(${e.id})">×</button></div>`;}
+function renderToday(){const sel=document.getElementById("inp-day").value;document.getElementById("today-lbl").textContent=sel;const de=entries.filter(e=>e.day===sel).sort((a,b)=>a.time.localeCompare(b.time));document.getElementById("today-list").innerHTML=de.length?de.map(renderE).join(""):"<div class='empty'>Nada registrado todavía</div>";}
+function renderHistDays(){const used=[...new Set(entries.map(e=>e.day))].sort((a,b)=>DAYS.indexOf(a)-DAYS.indexOf(b));const cont=document.getElementById("hist-days");if(!used.length){cont.innerHTML="";document.getElementById("hist-list").innerHTML="<div class='empty'>Sin registros todavía</div>";return;}cont.innerHTML=used.map((d,i)=>`<button class="day-btn${i===0?" active":""}" onclick="showHD('${d}',this)">${d.slice(0,3)}</button>`).join("");showHDContent(used[0]);}
+function showHD(d,el){document.querySelectorAll("#hist-days .day-btn").forEach(b=>b.classList.remove("active"));el.classList.add("active");showHDContent(d);}
+function showHDContent(d){const de=entries.filter(e=>e.day===d).sort((a,b)=>a.time.localeCompare(b.time));document.getElementById("hist-list").innerHTML=de.length?de.map(renderE).join(""):"<div class='empty'>Sin registros</div>";}
+function renderResumen(){const tot=entries.length;document.getElementById("s-total").textContent=tot;const bd={};entries.forEach(e=>{if(!bd[e.day])bd[e.day]=[];bd[e.day].push(e);});const days=Object.keys(bd);document.getElementById("s-days").textContent=days.length;document.getElementById("s-4com").textContent=days.filter(d=>new Set(bd[d].map(e=>e.type)).size>=4).length;document.getElementById("s-avg").textContent=days.length?(tot/days.length).toFixed(1):"—";document.getElementById("res-bd").innerHTML=DAYS.filter(d=>bd[d]).map(d=>{const types=bd[d].map(e=>{const c=TC[e.type]||TC.D;return`<span style="background:${c.bg};color:${c.c};font-size:10px;padding:2px 7px;border-radius:20px;font-weight:500">${TL[e.type]}</span>`;}).join(" ");return`<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border-soft);font-size:12px"><span style="color:var(--ink-muted);min-width:70px">${d}</span><div style="display:flex;gap:4px;flex-wrap:wrap">${types}</div></div>`;}).join("");const tt={D:[],A:[],M:[],C:[]};entries.forEach(e=>{if(tt[e.type])tt[e.type].push(e.time);});document.getElementById("res-times").innerHTML=Object.entries(tt).filter(([,a])=>a.length).map(([t,a])=>{const avg=a.reduce((s,h)=>{const[hh,mm]=h.split(":").map(Number);return s+hh*60+mm;},0)/a.length;const h=Math.floor(avg/60),m=Math.round(avg%60);const c=TC[t];return`<div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--border-soft);font-size:12px"><span style="background:${c.bg};color:${c.c};font-size:10px;padding:2px 7px;border-radius:20px;font-weight:500">${TL[t]}</span><span style="color:var(--ink-muted)">promedio</span><span style="font-weight:500;color:var(--ink)">${String(h).padStart(2,"0")}:${String(m).padStart(2,"0")}</span><span style="font-size:11px;color:var(--ink-muted)">(${a.length} registros)</span></div>`;}).join("")||"<div class='empty'>Todavía no hay datos suficientes</div>";}
+function showRegTab(id,el){["rr","rh","rs"].forEach(t=>{const e=document.getElementById(t);if(e)e.style.display=t===id?"block":"none";});document.querySelectorAll("#sc-registro .tab-btn").forEach(b=>b.classList.remove("active"));el.classList.add("active");if(id==="rh")renderHistDays();if(id==="rs")renderResumen();}
+function exportCSV(){if(!entries.length){alert("No hay registros para exportar.");return;}const header="Día,Hora,Tipo,Qué comí,Nota\n";const rows=entries.map(e=>`"${e.day}","${e.time}","${TL[e.type]||e.type}","${e.what.replace(/"/g,'""')}","${(e.note||"").replace(/"/g,'""')}"` ).join("\n");const csv="\uFEFF"+header+rows;const blob=new Blob([csv],{type:"text/csv;charset=utf-8;"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download="registro_comidas.csv";document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);}
+function toggleCI(cb){cb.closest(".ci").classList.toggle("done",cb.checked);}
+const now=new Date();document.getElementById("inp-day").selectedIndex=(now.getDay()+6)%7;document.getElementById("inp-time").value=`${String(now.getHours()).padStart(2,"0")}:${String(now.getMinutes()).padStart(2,"0")}`;renderToday();
+</script>
+</body>
+</html>
