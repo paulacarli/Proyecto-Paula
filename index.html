@@ -222,7 +222,6 @@ html,body{height:100%;font-family:"Nunito",sans-serif;background:var(--cream);co
     <button class="tb" data-fn="showRT" data-arg="rpeso">Peso ⚖️</button>
     <button class="tb" data-fn="showRT" data-arg="rh">Historial</button>
     <button class="tb" data-fn="showRT" data-arg="rs">Resumen</button>
-    <button class="tb" data-fn="showRT" data-arg="rev">Eventos 🎯</button>
   </div>
 
   <!-- COMIDAS -->
@@ -360,28 +359,6 @@ html,body{height:100%;font-family:"Nunito",sans-serif;background:var(--cream);co
       <div id="rbd"></div>
     </div>
     <button class="btn-secondary" data-fn="expCSV">Exportar a CSV</button>
-  </div>
-  <!-- EVENTOS IA -->
-  <div id="rev" style="display:none">
-    <div class="card">
-      <div class="ct">Evento o imprevisto</div>
-      <p style="font-size:13px;color:var(--ink-m);margin-bottom:14px;line-height:1.5">Contame que pasa hoy y la IA te sugiere alternativas de comida segun lo que tenes en casa.</p>
-      <div class="ff">
-        <label class="fl">Que pasa?</label>
-        <input type="text" id="ev-input" class="fi" placeholder="ej: cena fuera con amigos, llegue tarde del trabajo, tengo invitados...">
-      </div>
-      <button class="btn-primary" data-fn="askAI" style="margin-top:4px">Pedir sugerencias a la IA</button>
-      <div id="ev-loading" style="display:none;text-align:center;padding:20px 0;font-size:13px;color:var(--ink-m)">
-        <div style="font-size:24px;margin-bottom:8px">🤔</div>
-        Pensando alternativas...
-      </div>
-    </div>
-    <div id="ev-result" style="display:none">
-      <div class="card">
-        <div class="ct">Sugerencias</div>
-        <div id="ev-content" style="font-size:14px;color:var(--ink);line-height:1.7"></div>
-      </div>
-    </div>
   </div>
 
 
@@ -679,7 +656,7 @@ document.addEventListener("click",function(e){
   if(!el) return;
   var fn=el.getAttribute("data-fn");
   var arg=el.getAttribute("data-arg");
-  var map={showS:showS,showRT:showRT,showPT:showPT,showPD:showPD,showWeek:showWeek,showET:showET,selT:selT,selEx:selEx,addW:addW,addE:addE,addEx:addEx,resetW:resetW,expCSV:expCSV,addPeso:addPeso,addShopItem:addShopItem,askAI:askAI};
+  var map={showS:showS,showRT:showRT,showPT:showPT,showPD:showPD,showWeek:showWeek,showET:showET,selT:selT,selEx:selEx,addW:addW,addE:addE,addEx:addEx,resetW:resetW,expCSV:expCSV,addPeso:addPeso,addShopItem:addShopItem};
   if(!map[fn]) return;
   if(fn==="addW") map[fn](parseInt(arg));
   else if(arg) map[fn](el,arg);
@@ -696,7 +673,7 @@ function showS(el,id){
 }
 
 function showRT(el,id){
-  ["rr","ragua","rex","rpeso","rh","rs","rev"].forEach(function(t){
+  ["rr","ragua","rex","rpeso","rh","rs"].forEach(function(t){
     var e=document.getElementById(t);if(e)e.style.display=(t===id)?"block":"none";
   });
   document.querySelectorAll("#sc-reg .tb").forEach(function(b){b.classList.remove("on");});
@@ -1242,44 +1219,6 @@ function delShopItem(item){
   rShopList();
 }
 
-// AI EVENTOS
-function askAI(){
-  var input = document.getElementById("ev-input").value.trim();
-  if(!input){ return; }
-  var loading = document.getElementById("ev-loading");
-  var result = document.getElementById("ev-result");
-  var content2 = document.getElementById("ev-content");
-  loading.style.display="block";
-  result.style.display="none";
-
-  var stock = "Huevos, atun en lata, garbanzos, lentejas, porotos colorados, quinoa, pechuga de pollo, costeletas de cerdo, carne vacuna, camarones congelados, brocoli, zanahoria, cebolla, wok vegs congeladas, fruta congelada, frutos del bosque congelados, skyr natural, queso feta, queso philadelphia, queso burrata, jamon natural, almendras, semillas de chia, semillas de sesamo, semillas de zapallo, harina de almendras, ghee, aceite de oliva, leche de coco, pulpa de tomate, hongos secos.";
-  var context = "Sigo el programa Proyecto Sirenas (medicina funcional). Reglas: 4 comidas al dia, sin harinas, sin azucar, sin papa, sin arroz, sin pasta. Plato = 1/4 proteina + 1/2 vegetales + 1/4 grasa buena.";
-
-  var prompt = "Contexto alimentario: "+context+" Tengo en casa: "+stock+". El evento/imprevisto de hoy es: '"+input+"'. Dame 3 alternativas concretas de comidas que pueda hacer o comer hoy respetando mi programa, considerando el evento. Formato: lista clara con nombre y descripcion breve de cada opcion. Responde en espanol, sin asteriscos, sin markdown.";
-
-  fetch("https://api.anthropic.com/v1/messages", {
-    method: "POST",
-    headers: {"Content-Type":"application/json"},
-    body: JSON.stringify({
-      model: "claude-sonnet-4-20250514",
-      max_tokens: 600,
-      messages: [{role:"user", content: prompt}]
-    })
-  })
-  .then(function(r){ return r.json(); })
-  .then(function(data){
-    loading.style.display="none";
-    var text = (data.content&&data.content[0]&&data.content[0].text)||"No pude generar sugerencias.";
-    // convert newlines to <br>
-    content2.innerHTML = text.replace(/\n\n/g,"</p><p style='margin-top:10px'>").replace(/\n/g,"<br>");
-    result.style.display="block";
-  })
-  .catch(function(){
-    loading.style.display="none";
-    content2.innerHTML="Hubo un error al conectar con la IA. Revisa tu conexion.";
-    result.style.display="block";
-  });
-}
 
 // Init
 var now=new Date();
