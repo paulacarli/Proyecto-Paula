@@ -198,6 +198,11 @@ html,body{height:100%;font-family:"Nunito",sans-serif;background:var(--cream);co
 .btn-primary{width:100%;padding:14px;border-radius:var(--r-sm);border:none;background:var(--sage-d);color:white;font-size:15px;font-family:"Nunito",sans-serif;font-weight:600;cursor:pointer;transition:all 0.15s;}
 .btn-primary:active{background:#4A6847;transform:scale(0.98);}
 .btn-secondary{width:100%;padding:12px;border-radius:var(--r-sm);border:1.5px solid var(--border);background:white;color:var(--ink);font-size:13px;font-family:"Nunito",sans-serif;cursor:pointer;margin-top:8px;}
+/* TOAST */
+@keyframes toastIn{0%{opacity:0;transform:translateX(-50%) translateY(20px) scale(0.9);}60%{transform:translateX(-50%) translateY(-4px) scale(1.03);}100%{opacity:1;transform:translateX(-50%) translateY(0) scale(1);}}
+@keyframes toastOut{0%{opacity:1;transform:translateX(-50%) translateY(0) scale(1);}100%{opacity:0;transform:translateX(-50%) translateY(12px) scale(0.95);}}
+.toast-in{animation:toastIn 0.4s cubic-bezier(0.34,1.56,0.64,1) forwards;}
+.toast-out{animation:toastOut 0.3s ease-in forwards;}
 /* CALMA */
 .calm-day-card.calm-done{background:var(--sage-l)!important;}
 .calm-day-card.calm-today{border:2px solid var(--sage-d)!important;}
@@ -362,6 +367,10 @@ html,body{height:100%;font-family:"Nunito",sans-serif;background:var(--cream);co
         <div class="stat-box"><div class="stat-n" id="sm">0</div><div class="stat-l">minutos totales</div></div>
       </div>
       <div id="rbd"></div>
+    </div>
+    <div class="card" style="margin-top:12px">
+      <div class="ct">Esta semana</div>
+      <div id="weekly-stats"></div>
     </div>
     <button class="btn-secondary" data-fn="expCSV">Exportar a CSV</button>
   </div>
@@ -546,6 +555,7 @@ html,body{height:100%;font-family:"Nunito",sans-serif;background:var(--cream);co
     <button class="tb" data-fn="showET" data-arg="sup">Suplementos</button>
     <button class="tb" data-fn="showET" data-arg="eqv">Equiv.</button>
     <button class="tb" data-fn="showET" data-arg="com">Compras</button>
+    <button class="tb" data-fn="showET" data-arg="logros">Logros 🏅</button>
   </div>
 
   <div id="hab">
@@ -599,9 +609,19 @@ html,body{height:100%;font-family:"Nunito",sans-serif;background:var(--cream);co
       </div>
     </div>
   </div>
+
+  <div id="logros" style="display:none">
+    <div class="card">
+      <div class="ct">Mis logros</div>
+      <div id="logros-list"></div>
+    </div>
+  </div>
 </div>
 
 </div>
+
+<!-- TOAST BADGE -->
+<div id="badge-toast" style="position:fixed;bottom:96px;left:50%;transform:translateX(-50%);background:var(--ink);color:white;padding:16px 24px;border-radius:20px;font-size:15px;font-weight:600;z-index:999;display:none;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,0.3);min-width:240px;line-height:1.5"></div>
 
 <!-- CALMA -->
 <div id="sc-calma" class="sc">
@@ -714,7 +734,7 @@ function showRT(el,id){
   if(id==="rex") rExL();
   if(id==="rh"){document.getElementById("hd").value=tday();renderHD();}
   if(id==="rpeso") rPesoList();
-  if(id==="rs") rRes();
+  if(id==="rs"){rRes();rWeeklyStats();}
 }
 
 function showPT(el,id){
@@ -745,10 +765,11 @@ function showWeek(el,w){
 }
 
 function showET(el,id){
-  ["hab","sup","eqv","com"].forEach(function(t){var e=document.getElementById(t);if(e)e.style.display=(t===id)?"block":"none";});
+  ["hab","sup","eqv","com","logros"].forEach(function(t){var e=document.getElementById(t);if(e)e.style.display=(t===id)?"block":"none";});
   document.querySelectorAll("#sc-ext .tb").forEach(function(b){b.classList.remove("on");});
   el.classList.add("on");
   if(id==="com") rShopList();
+  if(id==="logros") rBadges();
 }
 
 function selT(el,t){
@@ -789,6 +810,7 @@ function addE(){
   var card=document.getElementById("add-card");
   card.classList.add("flash");
   setTimeout(function(){card.classList.remove("flash");},600);
+  checkAllBadges();
   rToday();
 }
 
@@ -838,7 +860,7 @@ function addW(ml){
   var n=new Date();
   var ts=String(n.getHours()).padStart(2,"0")+":"+String(n.getMinutes()).padStart(2,"0");
   wlog.push({date:t,ml:ml,time:ts});
-  sv();rW();
+  sv();checkAllBadges();rW();
 }
 
 function resetW(){
@@ -894,6 +916,7 @@ function addEx(){
   sEx=null;
   fb.textContent="Ejercicio registrado!";
   setTimeout(function(){fb.textContent="";},2500);
+  checkAllBadges();
   rExL();
 }
 
@@ -1004,6 +1027,7 @@ function addPeso(){
   document.getElementById("pw").value="";
   fb.textContent="Registrado!";
   setTimeout(function(){fb.textContent="";},2500);
+  checkAllBadges();
   rPesoList();
 }
 
@@ -1252,6 +1276,156 @@ function delShopItem(item){
 }
 
 
+// BADGES
+var unlockedBadges=[];
+try{unlockedBadges=JSON.parse(localStorage.getItem("pp_badges")||"[]");}catch(e){}
+function svBadges(){try{localStorage.setItem("pp_badges",JSON.stringify(unlockedBadges));}catch(e){}}
+
+var BADGES=[
+  {id:"b01",emoji:"🥚",name:"Primera comida",desc:"Registraste tu primera comida"},
+  {id:"b02",emoji:"💧",name:"Bien hidratada",desc:"Llegaste a 3 litros en un dia"},
+  {id:"b03",emoji:"🏃",name:"En movimiento",desc:"Primer ejercicio registrado"},
+  {id:"b04",emoji:"⚖️",name:"Me pese",desc:"Primer registro de peso"},
+  {id:"b05",emoji:"🌿",name:"Primer dia de Calma",desc:"Completaste los 3 habitos del dia 1"},
+  {id:"b06",emoji:"📅",name:"Una semana",desc:"7 dias distintos con comidas registradas"},
+  {id:"b07",emoji:"💪",name:"Constancia",desc:"5 sesiones de ejercicio registradas"},
+  {id:"b08",emoji:"✨",name:"Dia perfecto",desc:"4 comidas + agua + ejercicio el mismo dia"},
+  {id:"b09",emoji:"🌊",name:"Semana 1 de Calma",desc:"7 primeros dias del reto completados"},
+  {id:"b10",emoji:"🐚",name:"Sirena de Calma",desc:"Completaste los 21 dias del reto"}
+];
+
+function checkBadge(id){
+  if(unlockedBadges.indexOf(id)!==-1) return;
+  var earned=false;
+  if(id==="b01") earned=ents.length>=1;
+  else if(id==="b02"){
+    var wd={};
+    wlog.forEach(function(w){wd[w.date]=(wd[w.date]||0)+w.ml;});
+    var keys=Object.keys(wd);
+    for(var i=0;i<keys.length;i++){if(wd[keys[i]]>=3000){earned=true;break;}}
+  }
+  else if(id==="b03") earned=exs.length>=1;
+  else if(id==="b04") earned=pesos.length>=1;
+  else if(id==="b05") earned=typeof CALM_H!=="undefined"&&CALM_H.every(function(h){return !!calmData["d1_"+h.id];});
+  else if(id==="b06"){var ud={};ents.forEach(function(e){ud[e.date]=true;});earned=Object.keys(ud).length>=7;}
+  else if(id==="b07") earned=exs.length>=5;
+  else if(id==="b08"){
+    var md={};
+    ents.forEach(function(e){if(!md[e.date])md[e.date]={};md[e.date][e.type]=true;});
+    var wd2={};wlog.forEach(function(w){wd2[w.date]=(wd2[w.date]||0)+w.ml;});
+    var ed={};exs.forEach(function(e){ed[e.date]=true;});
+    var days=Object.keys(md);
+    for(var i=0;i<days.length;i++){
+      var d=days[i];
+      if(Object.keys(md[d]).length>=4&&(wd2[d]||0)>=3000&&ed[d]){earned=true;break;}
+    }
+  }
+  else if(id==="b09"){
+    if(typeof CALM_H!=="undefined"){
+      earned=true;
+      for(var d=1;d<=7;d++){if(!CALM_H.every(function(h){return !!calmData["d"+d+"_"+h.id];})){earned=false;break;}}
+    }
+  }
+  else if(id==="b10"){
+    if(typeof CALM_H!=="undefined"){
+      earned=true;
+      for(var d=1;d<=21;d++){if(!CALM_H.every(function(h){return !!calmData["d"+d+"_"+h.id];})){earned=false;break;}}
+    }
+  }
+  if(earned){
+    unlockedBadges.push(id);
+    svBadges();
+    showBadgeToast(id);
+    rBadges();
+  }
+}
+
+function checkAllBadges(){
+  BADGES.forEach(function(b){checkBadge(b.id);});
+}
+
+function showBadgeToast(id){
+  var badge=null;
+  for(var i=0;i<BADGES.length;i++){if(BADGES[i].id===id){badge=BADGES[i];break;}}
+  if(!badge) return;
+  var toast=document.getElementById("badge-toast");
+  if(!toast) return;
+  toast.innerHTML="<div style='font-size:32px;margin-bottom:4px'>"+badge.emoji+"</div><div style='font-size:11px;text-transform:uppercase;letter-spacing:.08em;opacity:.7;margin-bottom:2px'>Nuevo logro</div><div style='font-size:16px;font-weight:800'>"+badge.name+"</div><div style='font-size:12px;opacity:.75;margin-top:3px'>"+badge.desc+"</div>";
+  toast.className="toast-in";
+  toast.style.display="block";
+  setTimeout(function(){
+    toast.className="toast-out";
+    setTimeout(function(){toast.style.display="none";toast.className="";},300);
+  },3800);
+}
+
+function rBadges(){
+  var el=document.getElementById("logros-list");
+  if(!el) return;
+  var html="";
+  var count=unlockedBadges.length;
+  html+="<div style='font-size:12px;color:var(--ink-m);margin-bottom:12px'>"+count+" de "+BADGES.length+" logros desbloqueados</div>";
+  BADGES.forEach(function(b){
+    var ok=unlockedBadges.indexOf(b.id)!==-1;
+    html+="<div style='display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--border-s);opacity:"+(ok?"1":"0.32")+"'>";
+    html+="<div style='width:44px;height:44px;border-radius:12px;background:"+(ok?"var(--sage-l)":"var(--cream-d)")+";display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0'>"+b.emoji+"</div>";
+    html+="<div style='flex:1'><div style='font-size:13px;font-weight:600;color:var(--ink)'>"+b.name+"</div>";
+    html+="<div style='font-size:11px;color:var(--ink-m);margin-top:2px'>"+b.desc+"</div></div>";
+    if(ok) html+="<span style='color:var(--sage-d);font-size:18px;font-weight:700'>✓</span>";
+    html+="</div>";
+  });
+  el.innerHTML=html;
+}
+
+// WEEKLY STATS
+function rWeeklyStats(){
+  var el=document.getElementById("weekly-stats");
+  if(!el) return;
+  var days=[];
+  for(var i=6;i>=0;i--){
+    var d=new Date();d.setDate(d.getDate()-i);
+    days.push(d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"));
+  }
+  // Meals: days with 4 comidas
+  var mealFull=0;
+  days.forEach(function(d){
+    var types={};
+    ents.filter(function(e){return e.date===d;}).forEach(function(e){types[e.type]=true;});
+    if(Object.keys(types).length>=4) mealFull++;
+  });
+  // Water
+  var wd={};wlog.forEach(function(w){wd[w.date]=(wd[w.date]||0)+w.ml;});
+  var waterDays=0;days.forEach(function(d){if((wd[d]||0)>=3000)waterDays++;});
+  // Exercise
+  var ed={};exs.forEach(function(e){ed[e.date]=true;});
+  var exDays=0;days.forEach(function(d){if(ed[d])exDays++;});
+  // Calma
+  var calmDone=0,calmTotal=0;
+  if(typeof CALM_H!=="undefined"){
+    var cur=calmCurrentDay();
+    for(var cd=Math.max(1,cur-6);cd<=cur;cd++){
+      CALM_H.forEach(function(h){calmTotal++;if(calmData["d"+cd+"_"+h.id])calmDone++;});
+    }
+  }
+  function bar(pct){
+    return "<div style='height:6px;background:var(--cream-d);border-radius:3px;overflow:hidden;margin-top:4px'><div style='height:100%;width:"+pct+"%;background:var(--sage-d);border-radius:3px;transition:width 0.4s'></div></div>";
+  }
+  function row(icon,label,done,total){
+    var pct=total>0?Math.round(done/total*100):0;
+    return "<div style='margin-bottom:12px'><div style='display:flex;justify-content:space-between;font-size:12px'><span style='color:var(--ink-s)'>"+icon+" "+label+"</span><span style='font-weight:700;color:var(--ink)'>"+done+"/"+total+"  <span style='color:var(--ink-m);font-weight:400'>"+pct+"%</span></span></div>"+bar(pct)+"</div>";
+  }
+  var overall=Math.round(((mealFull+waterDays+exDays)/21+(calmTotal>0?calmDone/calmTotal:0))*50);
+  var html="";
+  html+=row("🍽","4 comidas al dia",mealFull,7);
+  html+=row("💧","Meta de agua (3L)",waterDays,7);
+  html+=row("🏃","Ejercicio",exDays,7);
+  if(calmTotal>0) html+=row("🌿","Habitos Calma",calmDone,calmTotal);
+  html+="<div style='border-top:1px solid var(--border-s);padding-top:10px;display:flex;justify-content:space-between;align-items:center'>";
+  html+="<span style='font-size:12px;color:var(--ink-m)'>Puntaje semanal</span>";
+  html+="<span style='font-size:22px;font-weight:800;color:var(--sage-d)'>"+overall+"%</span></div>";
+  el.innerHTML=html;
+}
+
 // JUNIO EN CALMA
 var calmData={};
 try{calmData=JSON.parse(localStorage.getItem("pp_calm")||"{}");}catch(e){}
@@ -1283,6 +1457,7 @@ function toggleCalmHabit(day,hid){
   var key="d"+day+"_"+hid;
   calmData[key]=!calmData[key];
   svCalm();
+  checkAllBadges();
   var cb=document.getElementById("calm_cb_"+key);
   if(cb) cb.checked=!!calmData[key];
   var lbl=document.getElementById("calm_lbl_"+key);
