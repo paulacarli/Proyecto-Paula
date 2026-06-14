@@ -226,6 +226,20 @@ html,body{height:100%;font-family:"Nunito",sans-serif;background:var(--cream);co
 .calm-day-card.calm-today{border:2px solid var(--sage-d)!important;}
 .calm-progress{height:7px;background:var(--cream-d);border-radius:4px;overflow:hidden;margin:8px 0 2px;}
 .calm-bar{height:100%;background:var(--sage-d);border-radius:4px;transition:width 0.5s ease;}
+/* CALMA CHART */
+.calm-chart-week{display:flex;gap:6px;margin-bottom:6px;}
+.calm-dot{width:36px;height:36px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:transform 0.12s,box-shadow 0.12s;position:relative;flex-shrink:0;}
+.calm-dot:active{transform:scale(0.92);}
+.calm-dot.today{box-shadow:0 0 0 2.5px var(--sage-d);}
+.calm-dot.full{background:var(--sage-d);}
+.calm-dot.partial{background:var(--amber);}
+.calm-dot.empty{background:var(--cream-d);border:1.5px solid var(--border);}
+.calm-dot.future{background:var(--cream-d);border:1.5px dashed var(--border);opacity:0.45;}
+.calm-dot-num{font-size:11px;font-weight:700;line-height:1;}
+.calm-dot.full .calm-dot-num,.calm-dot.partial .calm-dot-num{color:white;}
+.calm-dot.empty .calm-dot-num,.calm-dot.future .calm-dot-num{color:var(--ink-m);}
+.calm-dot-check{font-size:8px;line-height:1;margin-top:1px;color:rgba(255,255,255,0.8);}
+.calm-week-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-m);margin-bottom:4px;}
 </style>
 </head>
 <body>
@@ -658,15 +672,20 @@ html,body{height:100%;font-family:"Nunito",sans-serif;background:var(--cream);co
 <div id="badge-toast" style="position:fixed;bottom:96px;left:50%;transform:translateX(-50%);background:var(--ink);color:white;padding:16px 24px;border-radius:20px;font-size:15px;font-weight:600;z-index:999;display:none;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,0.3);min-width:240px;line-height:1.5"></div>
 
 <!-- CALMA -->
-<div id="sc-calma" class="sc">
+<div id="sc-calma" class="sc" style="padding:20px 16px 110px">
   <div style="font-family:'Nunito',sans-serif;font-size:22px;font-weight:800;margin-bottom:2px">Junio en Calma 🌿</div>
   <p style="font-size:12px;color:var(--ink-m);margin-bottom:12px">Reto 21 dias · 8 al 28 de junio 2026</p>
-  <div class="card" style="padding:14px 16px;margin-bottom:14px">
-    <div style="display:flex;justify-content:space-between;align-items:baseline">
-      <span style="font-size:13px;font-weight:600;color:var(--ink)" id="calm-progress-txt">—</span>
+  <div class="card" style="padding:14px 16px;margin-bottom:14px" id="calm-chart-card">
+    <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:12px">
+      <span style="font-size:13px;font-weight:700;color:var(--ink)">Vista general</span>
       <span style="font-size:12px;color:var(--ink-m)" id="calm-day-txt"></span>
     </div>
-    <div class="calm-progress"><div class="calm-bar" id="calm-progress-bar" style="width:0%"></div></div>
+    <div id="calm-chart"></div>
+    <div style="display:flex;gap:14px;margin-top:11px;flex-wrap:wrap">
+      <span style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--ink-m)"><span style="width:12px;height:12px;border-radius:50%;background:var(--sage-d);display:inline-block"></span>Completo</span>
+      <span style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--ink-m)"><span style="width:12px;height:12px;border-radius:50%;background:var(--amber);display:inline-block"></span>Parcial</span>
+      <span style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--ink-m)"><span style="width:12px;height:12px;border-radius:50%;background:var(--cream-d);border:1.5px solid var(--border);display:inline-block"></span>Sin completar</span>
+    </div>
   </div>
   <div class="tabs">
     <button class="tb on" data-fn="showCW" data-arg="1">Semana 1</button>
@@ -1762,19 +1781,59 @@ function toggleCalmHabit(day,hid){
   rCalmProgress();
 }
 
+function rCalmChart(){
+  var el=document.getElementById("calm-chart");
+  if(!el) return;
+  var cur=calmCurrentDay();
+  var weeks=[
+    {label:"Semana 1", days:[1,2,3,4,5,6,7]},
+    {label:"Semana 2", days:[8,9,10,11,12,13,14]},
+    {label:"Semana 3", days:[15,16,17,18,19,20,21]}
+  ];
+  var html="";
+  weeks.forEach(function(wk){
+    html+="<div class='calm-week-label'>"+wk.label+"</div>";
+    html+="<div class='calm-chart-week'>";
+    wk.days.forEach(function(d){
+      var habits=calmHabitsForDay(d);
+      var done=habits.filter(function(h){return !!calmData["d"+d+"_"+h.id];}).length;
+      var total=habits.length;
+      var isFuture=d>cur;
+      var isToday=d===cur;
+      var statusClass= isFuture ? "future" : done===0 ? "empty" : done===total ? "full" : "partial";
+      var todayClass= isToday ? " today" : "";
+      // label: day of month
+      var dt=new Date(CALM_START.getTime()+(d-1)*86400000);
+      var dayNum=dt.getDate();
+      var checkmark= !isFuture && done===total && total>0 ? "<div class='calm-dot-check'>✓</div>" : !isFuture && done>0 ? "<div class='calm-dot-check'>"+done+"/"+total+"</div>" : "";
+      html+="<div class='calm-dot "+statusClass+todayClass+"' onclick='jumpCalmDay("+d+")' title='Dia "+d+" · "+calmDayLabel(d)+"'>";
+      html+="<div class='calm-dot-num'>"+dayNum+"</div>";
+      html+=checkmark;
+      html+="</div>";
+    });
+    html+="</div>";
+  });
+  el.innerHTML=html;
+}
+
+function jumpCalmDay(d){
+  // switch to correct week tab and scroll to day card
+  var wNum=Math.ceil(d/7);
+  var tabs=document.querySelectorAll("#sc-calma .tb");
+  tabs.forEach(function(b){b.classList.remove("on");});
+  if(tabs[wNum-1]) tabs[wNum-1].classList.add("on");
+  [1,2,3].forEach(function(n){var e=document.getElementById("cw"+n);if(e)e.style.display=(n===wNum)?"block":"none";});
+  setTimeout(function(){
+    var card=document.getElementById("calmday_"+d);
+    if(card) card.scrollIntoView({behavior:"smooth",block:"center"});
+  },80);
+}
+
 function rCalmProgress(){
   var cur=calmCurrentDay();
-  var total=0,done=0;
-  for(var d=1;d<=cur;d++){
-    calmHabitsForDay(d).forEach(function(h){total++;if(calmData["d"+d+"_"+h.id])done++;});
-  }
-  var pct=total>0?Math.round(done/total*100):0;
-  var bar=document.getElementById("calm-progress-bar");
-  if(bar) bar.style.width=pct+"%";
-  var txt=document.getElementById("calm-progress-txt");
-  if(txt) txt.textContent=done+" de "+total+" habitos cumplidos ("+pct+"%)";
   var dtxt=document.getElementById("calm-day-txt");
-  if(dtxt) dtxt.textContent="Dia "+cur+" de 21";
+  if(dtxt) dtxt.textContent="Día "+cur+" de 21";
+  rCalmChart();
 }
 
 function rCalmWeek(wNum,cId){
