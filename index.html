@@ -1291,8 +1291,32 @@ var BADGES=[
   {id:"b07",emoji:"💪",name:"Constancia",desc:"5 sesiones de ejercicio registradas"},
   {id:"b08",emoji:"✨",name:"Dia perfecto",desc:"4 comidas + agua + ejercicio el mismo dia"},
   {id:"b09",emoji:"🌊",name:"Semana 1 de Calma",desc:"7 primeros dias del reto completados"},
-  {id:"b10",emoji:"🐚",name:"Sirena de Calma",desc:"Completaste los 21 dias del reto"}
+  {id:"b10",emoji:"🐚",name:"Sirena de Calma",desc:"21 dias del reto completados"},
+  {id:"b11",emoji:"🔥",name:"3 dias perfectos",desc:"3 dias distintos con 4 comidas, agua y ejercicio"},
+  {id:"b12",emoji:"💎",name:"Semana 2 de Calma",desc:"Dias 8 al 14 con todos sus habitos completados"},
+  {id:"b13",emoji:"🌺",name:"Semana 3 de Calma",desc:"Dias 15 al 21 con todos sus habitos completados"},
+  {id:"b14",emoji:"🧘",name:"Mitad del reto",desc:"50% del reto Junio en Calma cumplido"},
+  {id:"b15",emoji:"💦",name:"10 dias hidratada",desc:"10 dias distintos con 3 litros de agua"},
+  {id:"b16",emoji:"📆",name:"Mes de registros",desc:"30 dias distintos con comidas registradas"}
 ];
+
+var weeklyBadgesData={};
+try{weeklyBadgesData=JSON.parse(localStorage.getItem("pp_wbadges")||"{}");}catch(e){}
+function svWeeklyBadges(){try{localStorage.setItem("pp_wbadges",JSON.stringify(weeklyBadgesData));}catch(e){}}
+
+var WEEKLY_BADGES=[
+  {id:"wb1",emoji:"🏆",name:"Semana perfecta",desc:"7 dias con 4 comidas esta semana"},
+  {id:"wb2",emoji:"🌊",name:"Sirena del agua",desc:"7 dias con 3 litros de agua esta semana"},
+  {id:"wb3",emoji:"⚡",name:"Semana activa",desc:"5 o mas dias de ejercicio esta semana"},
+  {id:"wb4",emoji:"🌸",name:"Calma completa",desc:"Todos los habitos de Calma de esta semana"}
+];
+
+function getWeekKey(){
+  var d=new Date();d.setHours(0,0,0,0);
+  var jan1=new Date(d.getFullYear(),0,1);
+  var w=Math.ceil((((d-jan1)/86400000)+jan1.getDay()+1)/7);
+  return d.getFullYear()+"-"+w;
+}
 
 function checkBadge(id){
   if(unlockedBadges.indexOf(id)!==-1) return;
@@ -1306,7 +1330,7 @@ function checkBadge(id){
   }
   else if(id==="b03") earned=exs.length>=1;
   else if(id==="b04") earned=pesos.length>=1;
-  else if(id==="b05") earned=typeof CALM_H!=="undefined"&&CALM_H.every(function(h){return !!calmData["d1_"+h.id];});
+  else if(id==="b05") earned=CALM_H.every(function(h){return !!calmData["d1_"+h.id];});
   else if(id==="b06"){var ud={};ents.forEach(function(e){ud[e.date]=true;});earned=Object.keys(ud).length>=7;}
   else if(id==="b07") earned=exs.length>=5;
   else if(id==="b08"){
@@ -1321,16 +1345,41 @@ function checkBadge(id){
     }
   }
   else if(id==="b09"){
-    if(typeof CALM_H!=="undefined"){
-      earned=true;
-      for(var d=1;d<=7;d++){if(!CALM_H.every(function(h){return !!calmData["d"+d+"_"+h.id];})){earned=false;break;}}
-    }
+    earned=true;
+    for(var d=1;d<=7;d++){var hh=calmHabitsForDay(d);if(!hh.every(function(h){return !!calmData["d"+d+"_"+h.id];})){earned=false;break;}}
   }
   else if(id==="b10"){
-    if(typeof CALM_H!=="undefined"){
-      earned=true;
-      for(var d=1;d<=21;d++){if(!CALM_H.every(function(h){return !!calmData["d"+d+"_"+h.id];})){earned=false;break;}}
-    }
+    earned=true;
+    for(var d=1;d<=21;d++){var hh=calmHabitsForDay(d);if(!hh.every(function(h){return !!calmData["d"+d+"_"+h.id];})){earned=false;break;}}
+  }
+  else if(id==="b11"){
+    var md2={};
+    ents.forEach(function(e){if(!md2[e.date])md2[e.date]={};md2[e.date][e.type]=true;});
+    var wd3={};wlog.forEach(function(w){wd3[w.date]=(wd3[w.date]||0)+w.ml;});
+    var ed2={};exs.forEach(function(e){ed2[e.date]=true;});
+    var cnt=Object.keys(md2).filter(function(d){return Object.keys(md2[d]).length>=4&&(wd3[d]||0)>=3000&&ed2[d];}).length;
+    earned=cnt>=3;
+  }
+  else if(id==="b12"){
+    earned=true;
+    for(var d=8;d<=14;d++){var hh=calmHabitsForDay(d);if(!hh.every(function(h){return !!calmData["d"+d+"_"+h.id];})){earned=false;break;}}
+  }
+  else if(id==="b13"){
+    earned=true;
+    for(var d=15;d<=21;d++){var hh=calmHabitsForDay(d);if(!hh.every(function(h){return !!calmData["d"+d+"_"+h.id];})){earned=false;break;}}
+  }
+  else if(id==="b14"){
+    var tt=0,dn=0;
+    for(var d=1;d<=21;d++){calmHabitsForDay(d).forEach(function(h){tt++;if(calmData["d"+d+"_"+h.id])dn++;});}
+    earned=tt>0&&dn/tt>=0.5;
+  }
+  else if(id==="b15"){
+    var wd4={};wlog.forEach(function(w){wd4[w.date]=(wd4[w.date]||0)+w.ml;});
+    earned=Object.keys(wd4).filter(function(d){return wd4[d]>=3000;}).length>=10;
+  }
+  else if(id==="b16"){
+    var ud2={};ents.forEach(function(e){ud2[e.date]=true;});
+    earned=Object.keys(ud2).length>=30;
   }
   if(earned){
     unlockedBadges.push(id);
@@ -1340,13 +1389,61 @@ function checkBadge(id){
   }
 }
 
+function checkWeeklyBadge(id){
+  var wk=getWeekKey();
+  if(!weeklyBadgesData[wk]) weeklyBadgesData[wk]=[];
+  if(weeklyBadgesData[wk].indexOf(id)!==-1) return;
+  var today=new Date();today.setHours(0,0,0,0);
+  var dow=today.getDay();
+  var monday=new Date(today.getTime()-((dow===0?6:dow-1)*86400000));
+  var weekDays=[];
+  for(var i=0;i<7;i++){
+    var dd=new Date(monday.getTime()+i*86400000);
+    weekDays.push(dd.getFullYear()+"-"+String(dd.getMonth()+1).padStart(2,"0")+"-"+String(dd.getDate()).padStart(2,"0"));
+  }
+  var earned=false;
+  if(id==="wb1"){
+    earned=weekDays.every(function(d){
+      var types={};
+      ents.filter(function(e){return e.date===d;}).forEach(function(e){types[e.type]=true;});
+      return Object.keys(types).length>=4;
+    });
+  }
+  else if(id==="wb2"){
+    var wd={};wlog.forEach(function(w){wd[w.date]=(wd[w.date]||0)+w.ml;});
+    earned=weekDays.every(function(d){return (wd[d]||0)>=3000;});
+  }
+  else if(id==="wb3"){
+    var ed={};exs.forEach(function(e){ed[e.date]=true;});
+    earned=weekDays.filter(function(d){return !!ed[d];}).length>=5;
+  }
+  else if(id==="wb4"){
+    var cur=calmCurrentDay();
+    var calmDays=[];
+    for(var cd=Math.max(1,cur-6);cd<=cur;cd++) calmDays.push(cd);
+    if(calmDays.length>0){
+      earned=calmDays.every(function(cd){
+        return calmHabitsForDay(cd).every(function(h){return !!calmData["d"+cd+"_"+h.id];});
+      });
+    }
+  }
+  if(earned){
+    weeklyBadgesData[wk].push(id);
+    svWeeklyBadges();
+    showBadgeToast(id);
+    rBadges();
+  }
+}
+
 function checkAllBadges(){
   BADGES.forEach(function(b){checkBadge(b.id);});
+  WEEKLY_BADGES.forEach(function(b){checkWeeklyBadge(b.id);});
 }
 
 function showBadgeToast(id){
   var badge=null;
   for(var i=0;i<BADGES.length;i++){if(BADGES[i].id===id){badge=BADGES[i];break;}}
+  if(!badge){for(var i=0;i<WEEKLY_BADGES.length;i++){if(WEEKLY_BADGES[i].id===id){badge=WEEKLY_BADGES[i];break;}}}
   if(!badge) return;
   var toast=document.getElementById("badge-toast");
   if(!toast) return;
@@ -1362,9 +1459,21 @@ function showBadgeToast(id){
 function rBadges(){
   var el=document.getElementById("logros-list");
   if(!el) return;
+  var wk=getWeekKey();
+  var earnedThisWeek=weeklyBadgesData[wk]||[];
   var html="";
+  html+="<div style='font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-m);margin-bottom:10px'>🔄 Esta semana · se renuevan</div>";
+  WEEKLY_BADGES.forEach(function(b){
+    var ok=earnedThisWeek.indexOf(b.id)!==-1;
+    html+="<div style='display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--border-s);opacity:"+(ok?"1":"0.32")+"'>";
+    html+="<div style='width:44px;height:44px;border-radius:12px;background:"+(ok?"var(--amber-l)":"var(--cream-d)")+";display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0'>"+b.emoji+"</div>";
+    html+="<div style='flex:1'><div style='font-size:13px;font-weight:600;color:var(--ink)'>"+b.name+"</div>";
+    html+="<div style='font-size:11px;color:var(--ink-m);margin-top:2px'>"+b.desc+"</div></div>";
+    if(ok) html+="<span style='color:var(--amber);font-size:18px;font-weight:700'>✓</span>";
+    html+="</div>";
+  });
   var count=unlockedBadges.length;
-  html+="<div style='font-size:12px;color:var(--ink-m);margin-bottom:12px'>"+count+" de "+BADGES.length+" logros desbloqueados</div>";
+  html+="<div style='font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-m);margin:18px 0 10px'>⭐ Permanentes · "+count+"/"+BADGES.length+"</div>";
   BADGES.forEach(function(b){
     var ok=unlockedBadges.indexOf(b.id)!==-1;
     html+="<div style='display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--border-s);opacity:"+(ok?"1":"0.32")+"'>";
@@ -1401,11 +1510,9 @@ function rWeeklyStats(){
   var exDays=0;days.forEach(function(d){if(ed[d])exDays++;});
   // Calma
   var calmDone=0,calmTotal=0;
-  if(typeof CALM_H!=="undefined"){
-    var cur=calmCurrentDay();
-    for(var cd=Math.max(1,cur-6);cd<=cur;cd++){
-      CALM_H.forEach(function(h){calmTotal++;if(calmData["d"+cd+"_"+h.id])calmDone++;});
-    }
+  var cur=calmCurrentDay();
+  for(var cd=Math.max(1,cur-6);cd<=cur;cd++){
+    calmHabitsForDay(cd).forEach(function(h){calmTotal++;if(calmData["d"+cd+"_"+h.id])calmDone++;});
   }
   function bar(pct){
     return "<div style='height:6px;background:var(--cream-d);border-radius:3px;overflow:hidden;margin-top:4px'><div style='height:100%;width:"+pct+"%;background:var(--sage-d);border-radius:3px;transition:width 0.4s'></div></div>";
@@ -1431,11 +1538,27 @@ var calmData={};
 try{calmData=JSON.parse(localStorage.getItem("pp_calm")||"{}");}catch(e){}
 function svCalm(){try{localStorage.setItem("pp_calm",JSON.stringify(calmData));}catch(e){}}
 
-var CALM_H=[
+var CALM_W1=[
   {id:"h1",short:"Mañana sin pantalla",long:"Ventana abierta + vaso de agua + 10 min sin telefono"},
   {id:"h2",short:"Desayuno con proteina",long:"Primera comida del dia con proteina"},
   {id:"h3",short:"Desconexion 10pm",long:"Telefono lejos de la cama al dormir"}
 ];
+var CALM_W2=CALM_W1.concat([
+  {id:"h4",short:"Grasas saludables",long:"Incluir grasas saludables en al menos una comida del dia"},
+  {id:"h5",short:"12hs digestivas",long:"Dejar 12 horas entre cena y desayuno sin comer"},
+  {id:"h6",short:"Movimiento suave",long:"Movimiento somatico suave, cero cardio extenuante"}
+]);
+var CALM_W3=CALM_W2.concat([
+  {id:"h7",short:"Respiracion 4-7-8",long:"Pausa de respiracion 4-7-8 antes de cada comida"},
+  {id:"h8",short:"Hidratacion mineral",long:"Hidratacion estrategica con minerales para tus adrenales"},
+  {id:"h9",short:"Journaling nocturno",long:"Diario de vaciado mental antes de dormir"}
+]);
+var CALM_H=CALM_W1;
+function calmHabitsForDay(d){
+  if(d<=7) return CALM_W1;
+  if(d<=14) return CALM_W2;
+  return CALM_W3;
+}
 
 var CALM_START = new Date("2026-06-08T00:00:00");
 
@@ -1464,7 +1587,7 @@ function toggleCalmHabit(day,hid){
   if(lbl) lbl.classList.toggle("done",!!calmData[key]);
   var card=document.getElementById("calmday_"+day);
   if(card){
-    var allDone=CALM_H.every(function(h){return !!calmData["d"+day+"_"+h.id];});
+    var allDone=calmHabitsForDay(day).every(function(h){return !!calmData["d"+day+"_"+h.id];});
     card.classList.toggle("calm-done",allDone);
   }
   rCalmProgress();
@@ -1474,7 +1597,7 @@ function rCalmProgress(){
   var cur=calmCurrentDay();
   var total=0,done=0;
   for(var d=1;d<=cur;d++){
-    CALM_H.forEach(function(h){total++;if(calmData["d"+d+"_"+h.id])done++;});
+    calmHabitsForDay(d).forEach(function(h){total++;if(calmData["d"+d+"_"+h.id])done++;});
   }
   var pct=total>0?Math.round(done/total*100):0;
   var bar=document.getElementById("calm-progress-bar");
@@ -1490,12 +1613,15 @@ function rCalmWeek(wNum,cId){
   if(!el) return;
   var cur=calmCurrentDay();
   var start=(wNum-1)*7+1;
+  var prevCount=wNum===1?-1:wNum===2?3:6;
   var html="";
-  if(wNum>1) html+="<div class='note' style='margin-bottom:12px'>Las 3 pautas de la semana 1 continuan. Nuevas pautas se agregan la semana "+wNum+" — quedate atenta.</div>";
+  if(wNum===2) html+="<div class='note' style='margin-bottom:12px'><strong>🌿 Semana 2: Desinflamar y nutrir tu microbiota</strong><br><span style='font-size:11px;opacity:.8'>Se suman los 3 habitos de la semana 1 + los nuevos de abajo.</span></div>";
+  else if(wNum===3) html+="<div class='note' style='margin-bottom:12px'><strong>🧘 Semana 3: Gestion de la ansiedad y autocuidado</strong><br><span style='font-size:11px;opacity:.8'>Consolidas los 6 habitos previos + los nuevos de abajo.</span></div>";
   for(var d=start;d<start+7;d++){
+    var habits=calmHabitsForDay(d);
     var isToday=(d===cur);
     var isFuture=(d>cur);
-    var allDone=CALM_H.every(function(h){return !!calmData["d"+d+"_"+h.id];});
+    var allDone=habits.every(function(h){return !!calmData["d"+d+"_"+h.id];});
     var cardStyle="margin-bottom:10px;"+(isFuture?"opacity:0.55;":"");
     html+="<div class='card calm-day-card"+(allDone?" calm-done":"")+(isToday?" calm-today":"")+"' id='calmday_"+d+"' style='"+cardStyle+"'>";
     html+="<div style='display:flex;align-items:center;justify-content:space-between;margin-bottom:10px'>";
@@ -1503,7 +1629,8 @@ function rCalmWeek(wNum,cId){
     if(isToday) html+="<span class='badge bs'>HOY</span>";
     else if(allDone) html+="<span style='color:var(--sage-d);font-size:18px;font-weight:700'>✓</span>";
     html+="</div>";
-    CALM_H.forEach(function(h){
+    habits.forEach(function(h,i){
+      if(wNum>1&&i===prevCount) html+="<div style='font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--sage-d);margin:8px 0 5px;padding-top:7px;border-top:1px solid var(--border)'>✨ Nuevos esta semana</div>";
       var key="d"+d+"_"+h.id;
       var checked=!!calmData[key];
       html+="<label id='calm_lbl_"+key+"' class='ci"+(checked?" done":"")+"' style='margin-bottom:6px;cursor:pointer'>";
