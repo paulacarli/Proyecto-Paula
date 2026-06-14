@@ -203,6 +203,24 @@ html,body{height:100%;font-family:"Nunito",sans-serif;background:var(--cream);co
 @keyframes toastOut{0%{opacity:1;transform:translateX(-50%) translateY(0) scale(1);}100%{opacity:0;transform:translateX(-50%) translateY(12px) scale(0.95);}}
 .toast-in{animation:toastIn 0.4s cubic-bezier(0.34,1.56,0.64,1) forwards;}
 .toast-out{animation:toastOut 0.3s ease-in forwards;}
+/* SHOPPING LIST REDESIGN */
+.shop-filters{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin-bottom:14px;scrollbar-width:none;}
+.shop-filters::-webkit-scrollbar{display:none;}
+.shop-filter-btn{flex-shrink:0;padding:7px 14px;border-radius:20px;border:1.5px solid var(--border);background:white;color:var(--ink-m);font-size:12px;font-family:"Nunito",sans-serif;cursor:pointer;font-weight:500;white-space:nowrap;transition:all 0.15s;}
+.shop-filter-btn.on{background:var(--ink);color:white;border-color:var(--ink);font-weight:600;}
+.shop-cat-block{background:white;border-radius:var(--r);border:1px solid var(--border);box-shadow:var(--shadow);margin-bottom:10px;overflow:hidden;}
+.shop-cat-header{display:flex;align-items:center;justify-content:space-between;padding:11px 14px 10px;border-bottom:1px solid var(--border-s);}
+.shop-cat-title{font-size:12px;font-weight:700;color:var(--ink-m);text-transform:uppercase;letter-spacing:.06em;}
+.shop-cat-count{font-size:11px;color:var(--ink-m);background:var(--cream-d);padding:2px 8px;border-radius:20px;}
+.shop-item{display:flex;align-items:center;gap:10px;padding:11px 14px;border-bottom:1px solid var(--border-s);}
+.shop-item:last-child{border-bottom:none;}
+.shop-item input[type="checkbox"]{width:18px;height:18px;accent-color:var(--sage-d);flex-shrink:0;cursor:pointer;}
+.shop-item-name{flex:1;font-size:14px;color:var(--ink);line-height:1.3;}
+.shop-item.done .shop-item-name{text-decoration:line-through;color:var(--ink-m);}
+.shop-item-del{width:28px;height:28px;border-radius:50%;background:none;border:none;color:var(--ink-m);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;opacity:0.5;transition:opacity 0.15s;}
+.shop-item-del:hover{opacity:1;color:var(--coral);}
+.shop-empty-cat{padding:14px;font-size:13px;color:var(--ink-m);text-align:center;}
+
 /* CALMA */
 .calm-day-card.calm-done{background:var(--sage-l)!important;}
 .calm-day-card.calm-today{border:2px solid var(--sage-d)!important;}
@@ -600,13 +618,29 @@ html,body{height:100%;font-family:"Nunito",sans-serif;background:var(--cream);co
   </div>
 
   <div id="com" style="display:none">
-    <div class="note" style="margin-bottom:12px">Toca un item para tacharlo. Usa el campo de abajo para agregar lo que necesites.</div>
+    <!-- Filtros categoría -->
+    <div class="shop-filters" id="shop-filters"></div>
+    <!-- Lista -->
     <div id="shop-list-wrap"></div>
+    <!-- Formulario agregar -->
     <div class="card" style="margin-top:4px">
-      <div class="ff" style="display:flex;gap:8px;margin-bottom:0">
-        <input type="text" id="shop-new" class="fi" placeholder="Agregar item..." style="flex:1">
-        <button data-fn="addShopItem" style="padding:10px 16px;border-radius:var(--r-sm);border:none;background:var(--sage-d);color:white;font-family:Nunito,sans-serif;font-size:14px;font-weight:700;cursor:pointer;white-space:nowrap">+</button>
+      <div class="ct" style="font-size:14px;margin-bottom:10px">Agregar ítem</div>
+      <div class="ff" style="margin-bottom:8px">
+        <input type="text" id="shop-new" class="fi" placeholder="ej: Pechuga de pollo...">
       </div>
+      <div class="ff" style="margin-bottom:10px">
+        <label class="fl">Categoría</label>
+        <select id="shop-cat-sel" class="fi">
+          <option value="Proteinas">🥩 Proteínas</option>
+          <option value="Vegetales">🥦 Vegetales</option>
+          <option value="Congelados">❄️ Congelados</option>
+          <option value="Lacteos">🧀 Lácteos y quesos</option>
+          <option value="Despensa">🫙 Despensa</option>
+          <option value="Suplementos">💊 Suplementos</option>
+          <option value="Otros">📦 Otros</option>
+        </select>
+      </div>
+      <button data-fn="addShopItem" class="btn-primary" style="font-size:14px;padding:12px">+ Agregar</button>
     </div>
   </div>
 
@@ -1193,84 +1227,219 @@ function drawPesoChart(){
 }
 
 
-// SHOPPING LIST
-var DEFAULT_SHOP = [
-  "Huevos x12","Pechuga de pollo","Carne vacuna","Cerdo (lomo/costeletas)",
-  "Atun en lata x4","Camarones","Skyr natural x2",
-  "Lechuga o rucula","Tomates cherry","Pepino","Palta x2-3",
-  "Zanahoria","Brocoli","Cebolla x2","Limones x5","Ajo","Zucchini x2",
-  "Fruta congelada","Wok vegs congeladas",
-  "Queso feta en cubos","Queso philadelphia","Jamon natural",
-  "Aceite de oliva","Ghee","Leche de coco","Pulpa de tomate x2",
-  "Vinagre de manzana","Stevia liquida","Lentejas secas","Garbanzos secos",
-  "Magnesio glicinato","Vitamina C 1000mg","Vitamina D3 + K2","Probiotico","Creatina monohidrato"
+// SHOPPING LIST v2
+var SHOP_CATS = [
+  {key:"Proteinas",   label:"🥩 Proteínas"},
+  {key:"Vegetales",   label:"🥦 Vegetales"},
+  {key:"Congelados",  label:"❄️ Congelados"},
+  {key:"Lacteos",     label:"🧀 Lácteos"},
+  {key:"Despensa",    label:"🫙 Despensa"},
+  {key:"Suplementos", label:"💊 Suplementos"},
+  {key:"Otros",       label:"📦 Otros"}
 ];
+
+var DEFAULT_SHOP_V2 = [
+  {id:"s1", name:"Huevos x12",              cat:"Proteinas",   done:false},
+  {id:"s2", name:"Pechuga de pollo",         cat:"Proteinas",   done:false},
+  {id:"s3", name:"Carne vacuna",             cat:"Proteinas",   done:false},
+  {id:"s4", name:"Cerdo (lomo/costeletas)",  cat:"Proteinas",   done:false},
+  {id:"s5", name:"Atun en lata x4",          cat:"Proteinas",   done:false},
+  {id:"s6", name:"Camarones",               cat:"Proteinas",   done:false},
+  {id:"s7", name:"Skyr natural x2",          cat:"Proteinas",   done:false},
+  {id:"s8", name:"Lechuga o rucula",         cat:"Vegetales",   done:false},
+  {id:"s9", name:"Tomates cherry",           cat:"Vegetales",   done:false},
+  {id:"s10",name:"Pepino",                   cat:"Vegetales",   done:false},
+  {id:"s11",name:"Palta x2-3",              cat:"Vegetales",   done:false},
+  {id:"s12",name:"Zanahoria",               cat:"Vegetales",   done:false},
+  {id:"s13",name:"Brocoli",                 cat:"Vegetales",   done:false},
+  {id:"s14",name:"Cebolla x2",              cat:"Vegetales",   done:false},
+  {id:"s15",name:"Limones x5",              cat:"Vegetales",   done:false},
+  {id:"s16",name:"Ajo",                     cat:"Vegetales",   done:false},
+  {id:"s17",name:"Zucchini x2",             cat:"Vegetales",   done:false},
+  {id:"s18",name:"Fruta congelada",         cat:"Congelados",  done:false},
+  {id:"s19",name:"Wok vegs congeladas",     cat:"Congelados",  done:false},
+  {id:"s20",name:"Queso feta en cubos",     cat:"Lacteos",     done:false},
+  {id:"s21",name:"Queso philadelphia",      cat:"Lacteos",     done:false},
+  {id:"s22",name:"Jamon natural",           cat:"Lacteos",     done:false},
+  {id:"s23",name:"Aceite de oliva",         cat:"Despensa",    done:false},
+  {id:"s24",name:"Ghee",                    cat:"Despensa",    done:false},
+  {id:"s25",name:"Leche de coco",           cat:"Despensa",    done:false},
+  {id:"s26",name:"Pulpa de tomate x2",      cat:"Despensa",    done:false},
+  {id:"s27",name:"Vinagre de manzana",      cat:"Despensa",    done:false},
+  {id:"s28",name:"Stevia liquida",          cat:"Despensa",    done:false},
+  {id:"s29",name:"Lentejas secas",          cat:"Despensa",    done:false},
+  {id:"s30",name:"Garbanzos secos",         cat:"Despensa",    done:false},
+  {id:"s31",name:"Magnesio glicinato",      cat:"Suplementos", done:false},
+  {id:"s32",name:"Vitamina C 1000mg",       cat:"Suplementos", done:false},
+  {id:"s33",name:"Vitamina D3 + K2",        cat:"Suplementos", done:false},
+  {id:"s34",name:"Probiotico",              cat:"Suplementos", done:false},
+  {id:"s35",name:"Creatina monohidrato",    cat:"Suplementos", done:false}
+];
+
 var shopItems = [];
-try{ shopItems = JSON.parse(localStorage.getItem("pp_shop")||"null") || DEFAULT_SHOP.slice(); }catch(e){ shopItems = DEFAULT_SHOP.slice(); }
-var shopChecked = {};
-try{ shopChecked = JSON.parse(localStorage.getItem("pp_shop_c")||"{}"); }catch(e){}
+var shopFilterCat = "Todos";
+var shopIdCtr = 100;
+
+function loadShop(){
+  try{
+    var raw = localStorage.getItem("pp_shop_v2");
+    if(raw){
+      shopItems = JSON.parse(raw);
+      // find max id counter
+      shopItems.forEach(function(i){
+        var n = parseInt((i.id||"").replace("s",""),10);
+        if(!isNaN(n) && n >= shopIdCtr) shopIdCtr = n+1;
+      });
+    } else {
+      // try migrating old format
+      var oldItems = null;
+      try{ oldItems = JSON.parse(localStorage.getItem("pp_shop")||"null"); }catch(e){}
+      var oldChecked = {};
+      try{ oldChecked = JSON.parse(localStorage.getItem("pp_shop_c")||"{}"); }catch(e){}
+      if(oldItems && Array.isArray(oldItems) && oldItems.length && typeof oldItems[0]==="string"){
+        // old format: array of strings — migrate
+        var oldCatMap = {
+          "Huevos x12":"Proteinas","Pechuga de pollo":"Proteinas","Carne vacuna":"Proteinas",
+          "Cerdo (lomo/costeletas)":"Proteinas","Atun en lata x4":"Proteinas","Camarones":"Proteinas","Skyr natural x2":"Proteinas",
+          "Lechuga o rucula":"Vegetales","Tomates cherry":"Vegetales","Pepino":"Vegetales","Palta x2-3":"Vegetales",
+          "Zanahoria":"Vegetales","Brocoli":"Vegetales","Cebolla x2":"Vegetales","Limones x5":"Vegetales","Ajo":"Vegetales","Zucchini x2":"Vegetales",
+          "Fruta congelada":"Congelados","Wok vegs congeladas":"Congelados",
+          "Queso feta en cubos":"Lacteos","Queso philadelphia":"Lacteos","Jamon natural":"Lacteos",
+          "Aceite de oliva":"Despensa","Ghee":"Despensa","Leche de coco":"Despensa","Pulpa de tomate x2":"Despensa",
+          "Vinagre de manzana":"Despensa","Stevia liquida":"Despensa","Lentejas secas":"Despensa","Garbanzos secos":"Despensa",
+          "Magnesio glicinato":"Suplementos","Vitamina C 1000mg":"Suplementos","Vitamina D3 + K2":"Suplementos","Probiotico":"Suplementos","Creatina monohidrato":"Suplementos"
+        };
+        shopItems = oldItems.map(function(name,i){
+          return {id:"s"+(i+1), name:name, cat:oldCatMap[name]||"Otros", done:!!(oldChecked[name])};
+        });
+        shopIdCtr = shopItems.length+1;
+      } else {
+        shopItems = DEFAULT_SHOP_V2.map(function(i){ return Object.assign({},i); });
+      }
+      svShop();
+    }
+  }catch(e){ shopItems = DEFAULT_SHOP_V2.map(function(i){ return Object.assign({},i); }); }
+}
+loadShop();
 
 function svShop(){
-  try{ localStorage.setItem("pp_shop", JSON.stringify(shopItems)); }catch(e){}
-  try{ localStorage.setItem("pp_shop_c", JSON.stringify(shopChecked)); }catch(e){}
+  try{ localStorage.setItem("pp_shop_v2", JSON.stringify(shopItems)); }catch(e){}
+}
+
+function rShopFilters(){
+  var el = document.getElementById("shop-filters");
+  if(!el) return;
+  var usedCats = {};
+  shopItems.forEach(function(i){ usedCats[i.cat]=true; });
+  var html = "<button class=\"shop-filter-btn"+(shopFilterCat==="Todos"?" on":"")+"\" onclick=\"setShopFilter('Todos')\">Todos</button>";
+  SHOP_CATS.forEach(function(c){
+    if(!usedCats[c.key]) return;
+    var on = shopFilterCat===c.key?" on":"";
+    html += "<button class=\"shop-filter-btn"+on+"\" onclick=\"setShopFilter('"+c.key+"')\">"+c.label+"</button>";
+  });
+  // custom cats not in SHOP_CATS
+  Object.keys(usedCats).forEach(function(k){
+    var known = SHOP_CATS.some(function(c){ return c.key===k; });
+    if(!known){
+      var on = shopFilterCat===k?" on":"";
+      html += "<button class=\"shop-filter-btn"+on+"\" onclick=\"setShopFilter('"+k+"')\">📦 "+k+"</button>";
+    }
+  });
+  el.innerHTML = html;
+}
+
+function setShopFilter(cat){
+  shopFilterCat = cat;
+  rShopFilters();
+  rShopList();
 }
 
 function rShopList(){
+  rShopFilters();
   var wrap = document.getElementById("shop-list-wrap");
   if(!wrap) return;
-  // Group by category
-  var cats = [
-    {label:"Proteinas", items:["Huevos x12","Pechuga de pollo","Carne vacuna","Cerdo (lomo/costeletas)","Atun en lata x4","Camarones","Skyr natural x2","Salmon (opcional)"]},
-    {label:"Vegetales", items:["Lechuga o rucula","Tomates cherry","Pepino","Palta x2-3","Zanahoria","Brocoli","Cebolla x2","Limones x5","Ajo","Zucchini x2"]},
-    {label:"Congelados", items:["Fruta congelada","Wok vegs congeladas"]},
-    {label:"Lacteos y quesos", items:["Queso feta en cubos","Queso philadelphia","Burrata (ocasional)","Jamon natural"]},
-    {label:"Despensa", items:["Aceite de oliva","Ghee","Leche de coco","Pulpa de tomate x2","Vinagre de manzana","Stevia liquida","Lentejas secas","Garbanzos secos"]},
-    {label:"Suplementos", items:["Magnesio glicinato","Vitamina C 1000mg","Vitamina D3 + K2","Probiotico","Creatina monohidrato"]}
-  ];
-  // Find uncategorized items
-  var allCatItems = [].concat.apply([],cats.map(function(c){return c.items;}));
-  var extras = shopItems.filter(function(i){ return allCatItems.indexOf(i)===-1; });
-  if(extras.length) cats.push({label:"Agregados", items:extras});
+
+  // determine visible items
+  var visible = shopFilterCat==="Todos" ? shopItems : shopItems.filter(function(i){ return i.cat===shopFilterCat; });
+  if(!visible.length){
+    wrap.innerHTML = "<div class=\"empty\"><div class=\"empty-icon\">🛒</div>No hay ítems en esta categoría</div>";
+    return;
+  }
+
+  // group by category
+  var groups = {};
+  visible.forEach(function(item){
+    if(!groups[item.cat]) groups[item.cat]=[];
+    groups[item.cat].push(item);
+  });
+
+  // order by SHOP_CATS order
+  var orderedKeys = SHOP_CATS.map(function(c){ return c.key; });
+  Object.keys(groups).forEach(function(k){
+    if(orderedKeys.indexOf(k)===-1) orderedKeys.push(k);
+  });
 
   var html = "";
-  cats.forEach(function(cat){
-    var catItems = shopItems.filter(function(i){ return cat.items.indexOf(i)!==-1; });
-    if(!catItems.length) return;
-    html += "<div class=\"cs\" style=\"margin-bottom:10px\">";
-    html += "<div class=\"cst\">"+cat.label+"</div>";
-    catItems.forEach(function(item){
-      var checked = shopChecked[item]||false;
-      var doneClass = checked?" done":"";
-      html += "<label class=\"ci"+doneClass+"\">"+
-        "<input type=\"checkbox\" "+(checked?"checked":"")+" onchange=\"toggleShop(this,'"+item.replace(/'/g,"&#39;")+"')\">"+
-        "<span>"+item+"</span>"+
-        "<button onclick=\"delShopItem('"+item.replace(/'/g,"&#39;")+"');event.preventDefault();\" style=\"margin-left:auto;background:none;border:none;color:var(--ink-m);font-size:14px;cursor:pointer;padding:0 2px\">×</button>"+
-        "</label>";
+  orderedKeys.forEach(function(catKey){
+    var items = groups[catKey];
+    if(!items || !items.length) return;
+    var catDef = SHOP_CATS.find(function(c){ return c.key===catKey; });
+    var catLabel = catDef ? catDef.label : "📦 "+catKey;
+    var pending = items.filter(function(i){ return !i.done; }).length;
+    var total = items.length;
+    html += "<div class=\"shop-cat-block\">";
+    html += "<div class=\"shop-cat-header\">";
+    html += "<span class=\"shop-cat-title\">"+catLabel+"</span>";
+    html += "<span class=\"shop-cat-count\">"+pending+"/"+total+"</span>";
+    html += "</div>";
+    // pending first, then done
+    var sorted = items.filter(function(i){return !i.done;}).concat(items.filter(function(i){return i.done;}));
+    sorted.forEach(function(item){
+      var sid = item.id.replace(/'/g,"&#39;");
+      var doneClass = item.done ? " done" : "";
+      html += "<div class=\"shop-item"+doneClass+"\" id=\"sitem-"+sid+"\">";
+      html += "<input type=\"checkbox\" "+(item.done?"checked":"")+" onchange=\"toggleShop(this,'"+sid+"')\">";
+      html += "<span class=\"shop-item-name\">"+item.name+"</span>";
+      html += "<button class=\"shop-item-del\" onclick=\"delShopItem('"+sid+"')\" title=\"Eliminar\">×</button>";
+      html += "</div>";
     });
     html += "</div>";
   });
   wrap.innerHTML = html;
 }
 
-function toggleShop(cb, item){
-  shopChecked[item] = cb.checked;
-  cb.closest(".ci").classList.toggle("done", cb.checked);
+function toggleShop(cb, id){
+  var item = shopItems.find(function(i){ return i.id===id; });
+  if(!item) return;
+  item.done = cb.checked;
+  var row = document.getElementById("sitem-"+id);
+  if(row) row.classList.toggle("done", cb.checked);
+  // re-sort within block without full re-render for smoothness
   svShop();
+  // slight delay then re-render to move done items to bottom
+  setTimeout(rShopList, 300);
 }
 
 function addShopItem(){
   var inp = document.getElementById("shop-new");
+  var catSel = document.getElementById("shop-cat-sel");
   var val = inp.value.trim();
   if(!val) return;
-  if(shopItems.indexOf(val)===-1) shopItems.push(val);
-  svShop();
-  inp.value="";
+  var cat = catSel ? catSel.value : "Otros";
+  // avoid exact duplicates
+  var exists = shopItems.some(function(i){ return i.name.toLowerCase()===val.toLowerCase(); });
+  if(!exists){
+    shopItems.push({id:"s"+(shopIdCtr++), name:val, cat:cat, done:false});
+    svShop();
+  }
+  inp.value = "";
+  // switch filter to show the added category
+  shopFilterCat = cat;
   rShopList();
 }
 
-function delShopItem(item){
-  shopItems = shopItems.filter(function(i){ return i!==item; });
-  delete shopChecked[item];
+function delShopItem(id){
+  shopItems = shopItems.filter(function(i){ return i.id!==id; });
   svShop();
   rShopList();
 }
