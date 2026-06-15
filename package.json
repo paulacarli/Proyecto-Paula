@@ -1,0 +1,27 @@
+{
+  "name": "proyecto-paula",
+  "version": "1.0.0",
+  "description": "Proyecto Paula - Health & Wellness Tracking App",
+  "main": "index.html",
+  "scripts": {
+    "test": "echo \"No tests specified\" && exit 0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/paulacarli/Proyecto-Paula.git"
+  },
+  "keywords": [
+    "health",
+    "wellness",
+    "tracking"
+  ],
+  "author": "Paula Carli",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/paulacarli/Proyecto-Paula/issues"
+  },
+  "homepage": "https://github.com/paulacarli/Proyecto-Paula#readme",
+  "dependencies": {
+    "@vercel/analytics": "^2.0.1"
+  }
+}
