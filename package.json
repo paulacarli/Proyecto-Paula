@@ -1,0 +1,20 @@
+{
+  "name": "proyecto-paula",
+  "version": "1.0.0",
+  "description": "Paula's health tracking application",
+  "type": "module",
+  "scripts": {
+    "build": "node build.js",
+    "dev": "npx serve ."
+  },
+  "keywords": [
+    "health",
+    "tracking",
+    "wellness"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@vercel/analytics": "^1.3.1"
+  }
+}
