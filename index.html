@@ -221,6 +221,19 @@ html,body{height:100%;font-family:"Nunito",sans-serif;background:var(--cream);co
 .shop-item-del:hover{opacity:1;color:var(--coral);}
 .shop-empty-cat{padding:14px;font-size:13px;color:var(--ink-m);text-align:center;}
 
+/* PLATE BUILDER */
+.plate-emoji-box{width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+.plate-time-chip{font-size:12px;font-weight:600;color:var(--ink-m);background:var(--cream-d);padding:4px 10px;border-radius:20px;white-space:nowrap;}
+.plate-hint{font-size:11px;color:var(--ink-m);margin-top:2px;line-height:1.4;}
+.plate-result{border-radius:var(--r-sm);padding:10px 12px;margin-top:8px;font-size:12px;line-height:1.8;}
+.plate-result.good{background:#E8F5E9;}
+.plate-result.warn{background:var(--amber-l);}
+.plate-result.bad{background:var(--coral-l);}
+.plate-verdict{font-size:13px;font-weight:700;margin-bottom:4px;}
+.plate-verdict.good{color:#2E7D32;}
+.plate-verdict.warn{color:var(--amber);}
+.plate-verdict.bad{color:var(--coral);}
+
 /* CALMA */
 .calm-day-card.calm-done{background:var(--sage-l)!important;}
 .calm-day-card.calm-today{border:2px solid var(--sage-d)!important;}
@@ -410,21 +423,132 @@ html,body{height:100%;font-family:"Nunito",sans-serif;background:var(--cream);co
 
 </div>
 
-<!-- PLAN -->
+<!-- PLAN (Armador de plato) -->
 <div id="sc-plan" class="sc">
-  <div style="font-family:'Nunito',sans-serif;font-size:22px;font-weight:800;margin-bottom:4px">Plan semanal</div>
-  <p style="font-size:12px;color:var(--ink-m);margin-bottom:12px">8 - 21 junio 2026</p>
-  <div style="display:flex;gap:8px;margin-bottom:12px">
-    <button class="week-sel-btn db on" data-fn="showWeek" data-arg="1" style="flex:1;text-align:center">Sem 1 · 8–14 jun</button>
-    <button class="week-sel-btn db" data-fn="showWeek" data-arg="2" style="flex:1;text-align:center">Sem 2 · 15–21 jun</button>
-  </div>
-  <div class="tabs">
-    <button class="tb on" data-fn="showPT" data-arg="dias">Dias</button>
-    <button class="tb" data-fn="showPT" data-arg="prep">Meal prep</button>
+  <div style="font-family:'Nunito',sans-serif;font-size:22px;font-weight:800;margin-bottom:4px">Armá tu plato 🍽</div>
+  <p style="font-size:12px;color:var(--ink-m);margin-bottom:14px">Ingresá los ingredientes y chequeá si está bien equilibrado con tu plan</p>
+
+  <!-- Horarios del dia -->
+  <div class="card" style="margin-bottom:14px;padding:12px 14px">
+    <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-m);margin-bottom:10px">Horarios de hoy</div>
+    <div style="display:flex;justify-content:space-around;align-items:center">
+      <div style="text-align:center">
+        <div style="font-size:20px;margin-bottom:4px">🌅</div>
+        <div style="font-size:13px;font-weight:800;color:var(--sage-d)">08:30</div>
+        <div style="font-size:10px;color:var(--ink-m);margin-top:2px">Desayuno</div>
+      </div>
+      <div style="font-size:12px;color:var(--border)">—</div>
+      <div style="text-align:center">
+        <div style="font-size:20px;margin-bottom:4px">☀️</div>
+        <div style="font-size:13px;font-weight:800;color:var(--blue)">13:00</div>
+        <div style="font-size:10px;color:var(--ink-m);margin-top:2px">Almuerzo</div>
+      </div>
+      <div style="font-size:12px;color:var(--border)">—</div>
+      <div style="text-align:center">
+        <div style="font-size:20px;margin-bottom:4px">🍎</div>
+        <div style="font-size:13px;font-weight:800;color:var(--amber)">16:30</div>
+        <div style="font-size:10px;color:var(--ink-m);margin-top:2px">Merienda</div>
+      </div>
+      <div style="font-size:12px;color:var(--border)">—</div>
+      <div style="text-align:center">
+        <div style="font-size:20px;margin-bottom:4px">🌙</div>
+        <div style="font-size:13px;font-weight:800;color:var(--purple)">20:00</div>
+        <div style="font-size:10px;color:var(--ink-m);margin-top:2px">Cena</div>
+      </div>
+    </div>
+    <div style="font-size:10px;color:var(--ink-m);text-align:center;margin-top:10px;border-top:1px solid var(--border-s);padding-top:8px">Entre comidas: 3–5 hs · Reposo nocturno: 12 hs</div>
   </div>
 
-  <div id="dias">
-    <div class="dsel dsel-w1" id="dsel-w1">
+  <!-- DESAYUNO -->
+  <div class="card" style="margin-bottom:10px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div class="plate-emoji-box" style="background:var(--sage-l)">🌅</div>
+        <div>
+          <div style="font-size:15px;font-weight:700;color:var(--ink)">Desayuno</div>
+          <div class="plate-hint">Proteína + grasa · fruta OK</div>
+        </div>
+      </div>
+      <div class="plate-time-chip">~08:30</div>
+    </div>
+    <input type="text" id="pi-D" class="fi" placeholder="ej: 2 huevos + palta + cafe" oninput="clearPlateFb('D')" style="margin-bottom:8px">
+    <div class="suggestions" id="pchips-D"></div>
+    <div id="pfb-D"></div>
+    <div style="display:flex;gap:8px;margin-top:10px">
+      <button style="flex:1;padding:10px;border-radius:var(--r-sm);border:1.5px solid var(--border);background:white;color:var(--ink);font-size:13px;font-family:'Nunito',sans-serif;cursor:pointer;font-weight:500" onclick="evalPlate('D')">Evaluar</button>
+      <button id="padd-D" style="flex:1;padding:10px;border-radius:var(--r-sm);border:none;background:var(--sage-d);color:white;font-size:13px;font-family:'Nunito',sans-serif;font-weight:600;cursor:pointer;display:none;transition:all .15s" onclick="addFromPlan('D')">+ Al registro</button>
+    </div>
+    <div style="font-size:12px;text-align:center;margin-top:6px;min-height:14px;color:var(--sage-d);font-weight:500" id="pok-D"></div>
+  </div>
+
+  <!-- ALMUERZO -->
+  <div class="card" style="margin-bottom:10px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div class="plate-emoji-box" style="background:var(--blue-l)">☀️</div>
+        <div>
+          <div style="font-size:15px;font-weight:700;color:var(--ink)">Almuerzo</div>
+          <div class="plate-hint">Proteína + vegetales + grasa</div>
+        </div>
+      </div>
+      <div class="plate-time-chip" style="color:var(--blue)">~13:00</div>
+    </div>
+    <input type="text" id="pi-A" class="fi" placeholder="ej: pollo + ensalada + aceite oliva" oninput="clearPlateFb('A')" style="margin-bottom:8px">
+    <div class="suggestions" id="pchips-A"></div>
+    <div id="pfb-A"></div>
+    <div style="display:flex;gap:8px;margin-top:10px">
+      <button style="flex:1;padding:10px;border-radius:var(--r-sm);border:1.5px solid var(--border);background:white;color:var(--ink);font-size:13px;font-family:'Nunito',sans-serif;cursor:pointer;font-weight:500" onclick="evalPlate('A')">Evaluar</button>
+      <button id="padd-A" style="flex:1;padding:10px;border-radius:var(--r-sm);border:none;background:var(--blue);color:white;font-size:13px;font-family:'Nunito',sans-serif;font-weight:600;cursor:pointer;display:none;transition:all .15s" onclick="addFromPlan('A')">+ Al registro</button>
+    </div>
+    <div style="font-size:12px;text-align:center;margin-top:6px;min-height:14px;color:var(--blue);font-weight:500" id="pok-A"></div>
+  </div>
+
+  <!-- MERIENDA -->
+  <div class="card" style="margin-bottom:10px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div class="plate-emoji-box" style="background:var(--amber-l)">🍎</div>
+        <div>
+          <div style="font-size:15px;font-weight:700;color:var(--ink)">Merienda</div>
+          <div class="plate-hint">Proteína + fruta o grasa · liviana</div>
+        </div>
+      </div>
+      <div class="plate-time-chip" style="color:var(--amber)">~16:30</div>
+    </div>
+    <input type="text" id="pi-M" class="fi" placeholder="ej: skyr + berries + almendras" oninput="clearPlateFb('M')" style="margin-bottom:8px">
+    <div class="suggestions" id="pchips-M"></div>
+    <div id="pfb-M"></div>
+    <div style="display:flex;gap:8px;margin-top:10px">
+      <button style="flex:1;padding:10px;border-radius:var(--r-sm);border:1.5px solid var(--border);background:white;color:var(--ink);font-size:13px;font-family:'Nunito',sans-serif;cursor:pointer;font-weight:500" onclick="evalPlate('M')">Evaluar</button>
+      <button id="padd-M" style="flex:1;padding:10px;border-radius:var(--r-sm);border:none;background:var(--amber);color:white;font-size:13px;font-family:'Nunito',sans-serif;font-weight:600;cursor:pointer;display:none;transition:all .15s" onclick="addFromPlan('M')">+ Al registro</button>
+    </div>
+    <div style="font-size:12px;text-align:center;margin-top:6px;min-height:14px;color:var(--amber);font-weight:500" id="pok-M"></div>
+  </div>
+
+  <!-- CENA -->
+  <div class="card" style="margin-bottom:10px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div class="plate-emoji-box" style="background:var(--purple-l)">🌙</div>
+        <div>
+          <div style="font-size:15px;font-weight:700;color:var(--ink)">Cena</div>
+          <div class="plate-hint">Proteína + vegetales + grasa · sin fruta</div>
+        </div>
+      </div>
+      <div class="plate-time-chip" style="color:var(--purple)">~20:00</div>
+    </div>
+    <input type="text" id="pi-C" class="fi" placeholder="ej: 2 huevos + hongos + espinaca + ghee" oninput="clearPlateFb('C')" style="margin-bottom:8px">
+    <div class="suggestions" id="pchips-C"></div>
+    <div id="pfb-C"></div>
+    <div style="display:flex;gap:8px;margin-top:10px">
+      <button style="flex:1;padding:10px;border-radius:var(--r-sm);border:1.5px solid var(--border);background:white;color:var(--ink);font-size:13px;font-family:'Nunito',sans-serif;cursor:pointer;font-weight:500" onclick="evalPlate('C')">Evaluar</button>
+      <button id="padd-C" style="flex:1;padding:10px;border-radius:var(--r-sm);border:none;background:var(--purple);color:white;font-size:13px;font-family:'Nunito',sans-serif;font-weight:600;cursor:pointer;display:none;transition:all .15s" onclick="addFromPlan('C')">+ Al registro</button>
+    </div>
+    <div style="font-size:12px;text-align:center;margin-top:6px;min-height:14px;color:var(--purple);font-weight:500" id="pok-C"></div>
+  </div>
+
+  <div id="dias" style="display:none">
+    <div class="dsel dsel-w1" id="dsel-w1" style="display:none">
       <button class="db on" data-fn="showPD" data-arg="lun8">Lun 8</button>
       <button class="db" data-fn="showPD" data-arg="mar9">Mar 9</button>
       <button class="db" data-fn="showPD" data-arg="mie10">Mie 10</button>
@@ -1889,6 +2013,231 @@ function showCW(el,w){
   el.classList.add("on");
 }
 
+// PLATE BUILDER
+var PLATE_CHIPS={
+  D:['2 huevos','skyr','palta','berries','almendras','jamon','chia','cafe'],
+  A:['pollo','atun','carne','ensalada','brocoli','zanahoria','ghee','aceite oliva'],
+  M:['skyr','berries','almendras','manzana','chia pudding','frutos secos','yogur'],
+  C:['huevos','pollo','carne','hongos','espinaca','zucchini','ghee','aceite oliva']
+};
+var PLATE_TIMES={D:'08:30',A:'13:00',M:'16:30',C:'20:00'};
+var platePortions={};
+
+function initPlateChips(){
+  ['D','A','M','C'].forEach(function(meal){
+    var el=document.getElementById('pchips-'+meal);
+    if(!el) return;
+    el.innerHTML='';
+    (PLATE_CHIPS[meal]||[]).forEach(function(chip){
+      var btn=document.createElement('button');
+      btn.className='sug';
+      btn.textContent=chip;
+      btn.onclick=function(){
+        var inp=document.getElementById('pi-'+meal);
+        if(inp.value&&!inp.value.trim().endsWith('+')) inp.value+=' + ';
+        inp.value+=chip;
+        clearPlateFb(meal);
+      };
+      el.appendChild(btn);
+    });
+  });
+}
+
+function clearPlateFb(meal){
+  var fb=document.getElementById('pfb-'+meal);
+  if(fb) fb.innerHTML='';
+  var addBtn=document.getElementById('padd-'+meal);
+  if(addBtn) addBtn.style.display='none';
+  var ok=document.getElementById('pok-'+meal);
+  if(ok) ok.textContent='';
+  delete platePortions[meal];
+}
+
+var PP_PROT=['pollo','pechuga','carne','bife','churrasco','cerdo','costeleta','lomo','atun','salmon','salmón','huevo','clara','skyr','yogur','jamon','queso','camaron','camarones','langostino','garbanzo','lenteja','poroto','legumbre','pavo','bacalao','cottage'];
+var PP_VEG=['lechuga','tomate','zanahoria','zucchini','brocoli','espinaca','hongo','cebolla','morron','pepino','repollo','berenjena','esparrago','apio','radicheta','remolacha','chaucha','acelga','coliflor','hojas','ensalada','verdura','wok'];
+var PP_FAT=['palta','ghee','aceite','almendra','nuez','semilla','chia','coco','manteca','tahini','sesamo','sésamo'];
+var PP_FRUT=['berr','frutilla','manzana','naranja','pera','durazno','ciruela','kiwi','banana','fruta','mandarina','uva','mango','frambuesa','arandano','cereza','frutos rojos'];
+var PP_FORB=[
+  {t:'arroz',l:'arroz'},{t:'pasta',l:'pasta'},{t:'fideos',l:'fideos'},
+  {t:'polenta',l:'polenta'},{t:'azucar',l:'azúcar'},{t:'azúcar',l:'azúcar'},
+  {t:'papas',l:'papas'},{t:' papa ',l:'papa'},{t:'galleta',l:'galletitas'},
+  {t:'granola',l:'granola'},{t:'cereales',l:'cereales'}
+];
+
+function pf(n){return n.toFixed(1);}
+
+function evalPlate(meal){
+  var inp=document.getElementById('pi-'+meal);
+  var fb=document.getElementById('pfb-'+meal);
+  if(!inp||!inp.value.trim()){
+    if(fb) fb.innerHTML='<div style="font-size:12px;color:var(--ink-m);margin-top:8px">Primero escribí los ingredientes ✏️</div>';
+    return;
+  }
+  var s=' '+inp.value.toLowerCase()+' ';
+  var hasProt=PP_PROT.some(function(p){return s.indexOf(p)!==-1;});
+  var hasVeg=PP_VEG.some(function(v){return s.indexOf(v)!==-1;});
+  var hasFat=PP_FAT.some(function(f){return s.indexOf(f)!==-1;});
+  var hasFrut=PP_FRUT.some(function(f){return s.indexOf(f)!==-1;});
+  var forbs=PP_FORB.filter(function(f){return s.indexOf(f.t)!==-1;}).map(function(f){return f.l;});
+  forbs=forbs.filter(function(v,i,a){return a.indexOf(v)===i;});
+
+  platePortions[meal]={
+    prot: hasProt?'normal':'none',
+    veg:  hasVeg?'normal':'none',
+    fat:  hasFat?'normal':((meal==='D'||meal==='M')&&hasFrut?'normal':'none'),
+    frut: hasFrut,
+    forbs: forbs
+  };
+  renderPlateEval(meal);
+  var addBtn=document.getElementById('padd-'+meal);
+  if(addBtn) addBtn.style.display='block';
+}
+
+function setPortion(meal,type,val){
+  if(!platePortions[meal]) platePortions[meal]={prot:'none',veg:'none',fat:'none',frut:false,forbs:[]};
+  platePortions[meal][type]=val;
+  renderPlateEval(meal);
+}
+
+function renderPlateEval(meal){
+  var fb=document.getElementById('pfb-'+meal);
+  if(!fb) return;
+  var pp=platePortions[meal];
+  if(!pp) return;
+
+  var wt={none:0,poca:0.5,normal:1,abundante:1.5};
+  var pW,vW,fW;
+  if(meal==='A'||meal==='C'){
+    pW=1*(wt[pp.prot]||0); vW=2*(wt[pp.veg]||0); fW=1*(wt[pp.fat]||0);
+  } else {
+    pW=1.5*(wt[pp.prot]||0); vW=0.5*(wt[pp.veg]||0); fW=1*(wt[pp.fat]||0);
+  }
+  var tot=pW+vW+fW||0.001;
+  var pPct=pW/tot, vPct=vW/tot, fPct=fW/tot;
+
+  var svgInner=buildPlateArcSVG(pPct,vPct,fPct);
+
+  var cats=[
+    {type:'prot',icon:'🍖',lbl:'Proteína',   color:'#C4523A'},
+    {type:'veg', icon:'🥦',lbl:'Vegetales',  color:'#4A6A45'},
+    {type:'fat', icon:'🫒',lbl:'Grasa',      color:'#C8873A'}
+  ];
+  var opts=[{v:'none',l:'·'},{v:'poca',l:'Poca'},{v:'normal',l:'Normal'},{v:'abundante',l:'Bastante'}];
+
+  var btnsHTML=cats.map(function(c){
+    var detected=pp[c.type]!=='none';
+    var hint=detected?'':'<span style="font-size:10px;color:var(--ink-m);font-style:italic"> · no detectada</span>';
+    var btns=opts.map(function(o){
+      var on=pp[c.type]===o.v;
+      var st=on?'background:'+c.color+';color:white;border-color:'+c.color+';font-weight:700'
+               :'background:white;color:var(--ink-m);border-color:rgba(28,28,26,.1)';
+      return '<button onclick="setPortion(\''+meal+'\',\''+c.type+'\',\''+o.v+'\')" style="font-size:11px;padding:4px 9px;border-radius:20px;border:1.5px solid;font-family:\'Nunito\',sans-serif;cursor:pointer;margin-right:3px;margin-bottom:3px;'+st+'">'+o.l+'</button>';
+    }).join('');
+    return '<div style="margin-bottom:9px"><div style="font-size:12px;font-weight:600;color:var(--ink);margin-bottom:4px">'+c.icon+' '+c.lbl+hint+'</div><div>'+btns+'</div></div>';
+  }).join('');
+
+  var legend='<div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">'
+    +'<span style="font-size:10px;color:var(--ink-m);display:flex;align-items:center;gap:3px"><span style="width:9px;height:9px;border-radius:50%;background:#E8735A;display:inline-block"></span>Proteína</span>'
+    +'<span style="font-size:10px;color:var(--ink-m);display:flex;align-items:center;gap:3px"><span style="width:9px;height:9px;border-radius:50%;background:#5A7A55;display:inline-block"></span>Vegetales</span>'
+    +'<span style="font-size:10px;color:var(--ink-m);display:flex;align-items:center;gap:3px"><span style="width:9px;height:9px;border-radius:50%;background:#C8873A;display:inline-block"></span>Grasa</span>'
+    +'</div>';
+
+  var txtHTML=buildPlateFeedback(meal,pp,pPct,vPct,fPct);
+  var forbHTML=pp.forbs&&pp.forbs.length
+    ?'<div style="background:var(--coral-l);border-radius:var(--r-sm);padding:8px 12px;font-size:12px;color:var(--coral);margin-top:8px">❌ Ojo con: '+pp.forbs.join(', ')+'</div>':'';
+
+  fb.innerHTML=
+    '<div style="display:flex;gap:12px;align-items:flex-start;margin:12px 0 6px">'
+    +'<div style="flex-shrink:0"><svg viewBox="0 0 120 120" width="108" height="108">'+svgInner+'</svg>'+legend+'</div>'
+    +'<div style="flex:1;min-width:0">'+btnsHTML+'</div>'
+    +'</div>'
+    +txtHTML+forbHTML;
+}
+
+function buildPlateArcSVG(pPct,vPct,fPct){
+  var cx=60,cy=60,r=54,ri=28;
+  var segs=[{pct:pPct,fill:'#E8735A'},{pct:vPct,fill:'#5A7A55'},{pct:fPct,fill:'#C8873A'}];
+  if(pPct+vPct+fPct<0.01){
+    return '<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="#EDE9E0"/>'
+      +'<circle cx="'+cx+'" cy="'+cy+'" r="'+ri+'" fill="white"/>'
+      +'<text x="'+cx+'" y="'+(cy+8)+'" text-anchor="middle" font-size="22">🍽</text>';
+  }
+  var html='<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="#EDE9E0"/>';
+  var angle=-Math.PI/2;
+  segs.forEach(function(seg){
+    if(seg.pct<0.005) return;
+    var sw=seg.pct*2*Math.PI, end=angle+sw, lg=sw>Math.PI?1:0;
+    var x1o=cx+r*Math.cos(angle),y1o=cy+r*Math.sin(angle);
+    var x2o=cx+r*Math.cos(end),  y2o=cy+r*Math.sin(end);
+    var x1i=cx+ri*Math.cos(angle),y1i=cy+ri*Math.sin(angle);
+    var x2i=cx+ri*Math.cos(end),  y2i=cy+ri*Math.sin(end);
+    html+='<path d="M'+pf(x1o)+','+pf(y1o)+' A'+r+','+r+' 0 '+lg+',1 '+pf(x2o)+','+pf(y2o)
+         +' L'+pf(x2i)+','+pf(y2i)+' A'+ri+','+ri+' 0 '+lg+',0 '+pf(x1i)+','+pf(y1i)+' Z" fill="'+seg.fill+'"/>';
+    html+='<line x1="'+cx+'" y1="'+cy+'" x2="'+pf(x1o)+'" y2="'+pf(y1o)+'" stroke="white" stroke-width="2" stroke-linecap="round"/>';
+    angle=end;
+  });
+  html+='<circle cx="'+cx+'" cy="'+cy+'" r="'+ri+'" fill="white"/>';
+  html+='<text x="'+cx+'" y="'+(cy+8)+'" text-anchor="middle" font-size="22">🍽</text>';
+  return html;
+}
+
+function buildPlateFeedback(meal,pp,pPct,vPct,fPct){
+  var REFS={
+    prot:{normal:'2–3 huevos / 150g de carne o pollo / 1 pot de skyr',poca:'1 huevo / 75g de carne',abundante:'4 huevos / 200g+ de proteína'},
+    veg: {normal:'2 puñados / 1.5–2 tazas',poca:'1 puñado pequeño / 1 taza',abundante:'3+ puñados'},
+    fat: {normal:'1–2 cdas de aceite o ghee / ½ palta / puñado de almendras',poca:'1 cdita de aceite / unas lascas de palta',abundante:'3+ cdas / palta entera / 30g+ frutos secos'}
+  };
+  var lines=[];
+
+  if(pp.prot==='none')       lines.push({ok:false,txt:'❌ Sin proteína — apuntá a: '+REFS.prot.normal});
+  else if(pp.prot==='poca')  lines.push({ok:false,txt:'⚠️ Poca proteína — apuntá a: '+REFS.prot.normal});
+  else if(pp.prot==='normal')lines.push({ok:true, txt:'✅ Proteína OK — referencia: '+REFS.prot.normal});
+  else lines.push({ok:null,txt:'ℹ️ Proteína abundante ('+REFS.prot.abundante+') — fijate que los veg no queden chicos'});
+
+  if(meal==='A'||meal==='C'){
+    if(pp.veg==='none')       lines.push({ok:false,txt:'❌ Sin vegetales — apuntá a: '+REFS.veg.normal});
+    else if(pp.veg==='poca')  lines.push({ok:false,txt:'⚠️ Pocos vegetales — apuntá a: '+REFS.veg.normal});
+    else if(pp.veg==='normal')lines.push({ok:true, txt:'✅ Vegetales OK — referencia: '+REFS.veg.normal});
+    else lines.push({ok:true,txt:'✅ Vegetales generosos — '+REFS.veg.abundante+' ✓'});
+  } else if(pp.veg!=='none'){
+    lines.push({ok:true,txt:'✅ Vegetales de bonus — '+REFS.veg[pp.veg]});
+  }
+
+  if(pp.fat==='none'){
+    if((meal==='D'||meal==='M')&&pp.frut) lines.push({ok:true,txt:'✅ Fruta OK en esta comida — si querés sumar grasa: '+REFS.fat.normal});
+    else lines.push({ok:false,txt:'❌ Sin grasa saludable — apuntá a: '+REFS.fat.normal});
+  } else if(pp.fat==='poca') lines.push({ok:false,txt:'⚠️ Poca grasa — apuntá a: '+REFS.fat.normal});
+  else if(pp.fat==='normal') lines.push({ok:true,txt:'✅ Grasa OK — referencia: '+REFS.fat.normal});
+  else lines.push({ok:null,txt:'ℹ️ Bastante grasa ('+REFS.fat.abundante+') — asegurate de que sea saludable'});
+
+  if(pp.frut&&(meal==='A'||meal==='C')) lines.push({ok:false,txt:'⚠️ Fruta mejor en desayuno o merienda'});
+
+  var bad=lines.filter(function(l){return l.ok===false;}).length;
+  var status=bad===0?'good':bad<=1?'warn':'bad';
+  var verdicts={good:'🟢 Plato bien equilibrado',warn:'🟡 Casi, ajustá algo',bad:'🔴 Revisá la composición'};
+
+  var html='<div class="plate-result '+status+'">';
+  html+='<div class="plate-verdict '+status+'">'+verdicts[status]+'</div>';
+  lines.forEach(function(l){html+='<div style="font-size:12px;line-height:1.8">'+l.txt+'</div>';});
+  html+='</div>';
+  return html;
+}
+
+function addFromPlan(meal){
+  var inp=document.getElementById('pi-'+meal);
+  if(!inp||!inp.value.trim()) return;
+  var what=inp.value.trim();
+  ents.push({id:Date.now(),date:tday(),time:PLATE_TIMES[meal],type:meal,what:what,note:''});
+  ents.sort(function(a,b){return a.date===b.date?a.time.localeCompare(b.time):a.date.localeCompare(b.date);});
+  sv();
+  var ok=document.getElementById('pok-'+meal);
+  if(ok){ok.textContent='¡Agregado al registro!';setTimeout(function(){ok.textContent='';},2500);}
+  var addBtn=document.getElementById('padd-'+meal);
+  if(addBtn){addBtn.textContent='✓ Guardado';setTimeout(function(){addBtn.textContent='+ Al registro';},2000);}
+  checkAllBadges();
+  rToday();
+}
+
 // Init
 var now=new Date();
 var t=tday();
@@ -1898,7 +2247,7 @@ document.getElementById("exd").value=t;
 document.getElementById("hd").value=t;
 setHdrDate();
 document.getElementById("pd").value=tday();
-rToday();rW();rExL();rPesoList();rShopList();initCalma();
+rToday();rW();rExL();rPesoList();rShopList();initCalma();initPlateChips();
 </script>
 </body>
 </html>
