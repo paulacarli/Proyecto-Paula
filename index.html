@@ -802,28 +802,41 @@ html,body{height:100%;font-family:"Nunito",sans-serif;background:var(--cream);co
 
 <!-- CALMA -->
 <div id="sc-calma" class="sc" style="padding:20px 16px 110px">
-  <div style="font-family:'Nunito',sans-serif;font-size:22px;font-weight:800;margin-bottom:2px">Junio en Calma 🌿</div>
-  <p style="font-size:12px;color:var(--ink-m);margin-bottom:12px">Reto 21 dias · 8 al 28 de junio 2026</p>
-  <div class="card" style="padding:14px 16px;margin-bottom:14px" id="calm-chart-card">
-    <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:12px">
-      <span style="font-size:13px;font-weight:700;color:var(--ink)">Vista general</span>
-      <span style="font-size:12px;color:var(--ink-m)" id="calm-day-txt"></span>
+  <!-- RETO VIEW -->
+  <div id="calma-reto">
+    <div style="font-family:'Nunito',sans-serif;font-size:22px;font-weight:800;margin-bottom:2px">Junio en Calma 🌿</div>
+    <p style="font-size:12px;color:var(--ink-m);margin-bottom:12px">Reto 21 dias · 8 al 28 de junio 2026</p>
+    <div class="card" style="padding:14px 16px;margin-bottom:14px" id="calm-chart-card">
+      <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:12px">
+        <span style="font-size:13px;font-weight:700;color:var(--ink)">Vista general</span>
+        <span style="font-size:12px;color:var(--ink-m)" id="calm-day-txt"></span>
+      </div>
+      <div id="calm-chart"></div>
+      <div style="display:flex;gap:14px;margin-top:11px;flex-wrap:wrap">
+        <span style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--ink-m)"><span style="width:12px;height:12px;border-radius:50%;background:var(--sage-d);display:inline-block"></span>Completo</span>
+        <span style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--ink-m)"><span style="width:12px;height:12px;border-radius:50%;background:var(--amber);display:inline-block"></span>Parcial</span>
+        <span style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--ink-m)"><span style="width:12px;height:12px;border-radius:50%;background:var(--cream-d);border:1.5px solid var(--border);display:inline-block"></span>Sin completar</span>
+      </div>
     </div>
-    <div id="calm-chart"></div>
-    <div style="display:flex;gap:14px;margin-top:11px;flex-wrap:wrap">
-      <span style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--ink-m)"><span style="width:12px;height:12px;border-radius:50%;background:var(--sage-d);display:inline-block"></span>Completo</span>
-      <span style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--ink-m)"><span style="width:12px;height:12px;border-radius:50%;background:var(--amber);display:inline-block"></span>Parcial</span>
-      <span style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--ink-m)"><span style="width:12px;height:12px;border-radius:50%;background:var(--cream-d);border:1.5px solid var(--border);display:inline-block"></span>Sin completar</span>
+    <div class="tabs">
+      <button class="tb on" data-fn="showCW" data-arg="1">Semana 1</button>
+      <button class="tb" data-fn="showCW" data-arg="2">Semana 2</button>
+      <button class="tb" data-fn="showCW" data-arg="3">Semana 3</button>
+    </div>
+    <div id="cw1"></div>
+    <div id="cw2" style="display:none"></div>
+    <div id="cw3" style="display:none"></div>
+  </div>
+  <!-- POST-RETO VIEW -->
+  <div id="calma-post" style="display:none">
+    <div style="font-family:'Nunito',sans-serif;font-size:22px;font-weight:800;margin-bottom:2px">Modo Calma 🌿</div>
+    <p style="font-size:12px;color:var(--ink-m);margin-bottom:12px">Habitos diarios de mantenimiento</p>
+    <div id="post-today-card"></div>
+    <div class="card" style="padding:14px 16px;margin-top:4px">
+      <div style="font-size:13px;font-weight:700;color:var(--ink);margin-bottom:10px">Ultimos 14 dias</div>
+      <div id="post-history"></div>
     </div>
   </div>
-  <div class="tabs">
-    <button class="tb on" data-fn="showCW" data-arg="1">Semana 1</button>
-    <button class="tb" data-fn="showCW" data-arg="2">Semana 2</button>
-    <button class="tb" data-fn="showCW" data-arg="3">Semana 3</button>
-  </div>
-  <div id="cw1"></div>
-  <div id="cw2" style="display:none"></div>
-  <div id="cw3" style="display:none"></div>
 </div>
 
 <!-- BOTTOM NAV -->
@@ -1870,10 +1883,19 @@ var CALM_W2=CALM_W1.concat([
   {id:"h6",short:"Movimiento suave",long:"Movimiento somatico suave, cero cardio extenuante"}
 ]);
 var CALM_W3=CALM_W2.concat([
-  {id:"h7",short:"Respiracion 4-7-8",long:"Pausa de respiracion 4-7-8 antes de cada comida"},
-  {id:"h8",short:"Hidratacion mineral",long:"Hidratacion estrategica con minerales para tus adrenales"},
-  {id:"h9",short:"Journaling nocturno",long:"Diario de vaciado mental antes de dormir"}
+  {id:"h7",short:"Respiracion 4-7-8",long:"Ejercicio para desactivar el estres: inhalar 4 seg, aguantar 7, exhalar 8"},
+  {id:"h8",short:"Hidratacion mineral",long:"Agua con una pizca de sales minerales sin aditivos e infusiones clave a lo largo del dia"},
+  {id:"h9",short:"Journaling nocturno",long:"Escribir en papel todas las tareas pendientes y preocupaciones antes de la desconexion de las 10pm"}
 ]);
+var CALM_POST=[
+  {id:"h1",short:"Mañana sin pantalla",long:"Ventana abierta + vaso de agua + 10 min sin telefono"},
+  {id:"h3",short:"Desconexion 10pm",long:"Telefono lejos de la cama al dormir"},
+  {id:"h7",short:"Respiracion 4-7-8",long:"Ejercicio para desactivar el estres: inhalar 4 seg, aguantar 7, exhalar 8"},
+  {id:"h9",short:"Journaling nocturno",long:"Escribir en papel todas las tareas pendientes y preocupaciones antes de la desconexion de las 10pm"}
+];
+var postData={};
+try{postData=JSON.parse(localStorage.getItem("pp_post")||"{}");}catch(e){}
+function svPost(){try{localStorage.setItem("pp_post",JSON.stringify(postData));}catch(e){}}
 var CALM_H=CALM_W1;
 function calmHabitsForDay(d){
   if(d<=7) return CALM_W1;
@@ -1952,7 +1974,7 @@ function rCalmChart(){
 function jumpCalmDay(d){
   // switch to correct week tab and scroll to day card
   var wNum=Math.ceil(d/7);
-  var tabs=document.querySelectorAll("#sc-calma .tb");
+  var tabs=document.querySelectorAll("#calma-reto .tb");
   tabs.forEach(function(b){b.classList.remove("on");});
   if(tabs[wNum-1]) tabs[wNum-1].classList.add("on");
   [1,2,3].forEach(function(n){var e=document.getElementById("cw"+n);if(e)e.style.display=(n===wNum)?"block":"none";});
@@ -2005,20 +2027,102 @@ function rCalmWeek(wNum,cId){
   el.innerHTML=html;
 }
 
+function isPostReto(){
+  var end=new Date("2026-06-29T00:00:00");
+  var t=new Date(); t.setHours(0,0,0,0);
+  return t>=end;
+}
+
+function togglePostHabit(dateKey,hid){
+  if(!postData[dateKey]) postData[dateKey]={};
+  postData[dateKey][hid]=!postData[dateKey][hid];
+  svPost();
+  var cb=document.getElementById("post_cb_"+hid);
+  if(cb) cb.checked=!!postData[dateKey][hid];
+  var lbl=document.getElementById("post_lbl_"+hid);
+  if(lbl) lbl.classList.toggle("done",!!postData[dateKey][hid]);
+  rPostTodayCard();
+  rPostHistory();
+}
+
+function rPostTodayCard(){
+  var dateKey=tday();
+  var d=new Date();
+  var days=["Domingo","Lunes","Martes","Miercoles","Jueves","Viernes","Sabado"];
+  var months=["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"];
+  var label=days[d.getDay()]+", "+d.getDate()+" "+months[d.getMonth()];
+  var dayData=postData[dateKey]||{};
+  var done=CALM_POST.filter(function(h){return !!dayData[h.id];}).length;
+  var allDone=done===CALM_POST.length;
+  var el=document.getElementById("post-today-card");
+  if(!el) return;
+  var html="<div class='card calm-day-card"+(allDone?" calm-done":"")+" calm-today' style='margin-bottom:10px'>";
+  html+="<div style='display:flex;align-items:center;justify-content:space-between;margin-bottom:10px'>";
+  html+="<span style='font-size:14px;font-weight:700;color:var(--ink)'>"+label+"</span>";
+  if(allDone) html+="<span style='color:var(--sage-d);font-size:18px;font-weight:700'>✓</span>";
+  else html+="<span style='font-size:12px;color:var(--ink-m)'>"+done+"/"+CALM_POST.length+"</span>";
+  html+="</div>";
+  CALM_POST.forEach(function(h){
+    var checked=!!dayData[h.id];
+    html+="<label id='post_lbl_"+h.id+"' class='ci"+(checked?" done":"")+"' style='margin-bottom:6px;cursor:pointer' onclick='togglePostHabit(\""+dateKey+"\",\""+h.id+"\")'>";
+    html+="<input type='checkbox' id='post_cb_"+h.id+"' "+(checked?"checked ":"")+" onclick='event.stopPropagation()'>";
+    html+="<div><span style='font-size:13px;font-weight:600'>"+h.short+"</span>";
+    html+="<div style='font-size:11px;color:var(--ink-m);margin-top:1px'>"+h.long+"</div></div>";
+    html+="</label>";
+  });
+  html+="</div>";
+  el.innerHTML=html;
+}
+
+function rPostHistory(){
+  var el=document.getElementById("post-history");
+  if(!el) return;
+  var today=new Date(); today.setHours(0,0,0,0);
+  var days=[];
+  for(var i=1;i<=14;i++){
+    var dt=new Date(today.getTime()-i*86400000);
+    var key=dt.getFullYear()+"-"+String(dt.getMonth()+1).padStart(2,"0")+"-"+String(dt.getDate()).padStart(2,"0");
+    var dayData=postData[key]||{};
+    var done=CALM_POST.filter(function(h){return !!dayData[h.id];}).length;
+    var dn=["Dom","Lun","Mar","Mie","Jue","Vie","Sab"];
+    days.push({key:key,label:dn[dt.getDay()]+" "+dt.getDate(),done:done,total:CALM_POST.length});
+  }
+  var html="<div style='display:flex;gap:6px;flex-wrap:wrap'>";
+  days.reverse().forEach(function(d){
+    var statusBg=d.done===0?"var(--cream-d)":d.done===d.total?"var(--sage-d)":"var(--amber)";
+    var textC=d.done===0?"var(--ink-m)":"white";
+    html+="<div style='display:flex;flex-direction:column;align-items:center;gap:3px'>";
+    html+="<div style='width:34px;height:34px;border-radius:50%;background:"+statusBg+";display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:"+textC+"'>"+(d.done===d.total?"✓":d.done>0?d.done+"/"+d.total:"—")+"</div>";
+    html+="<div style='font-size:9px;color:var(--ink-m);text-align:center'>"+d.label+"</div>";
+    html+="</div>";
+  });
+  html+="</div>";
+  el.innerHTML=html;
+}
+
 function initCalma(){
-  rCalmWeek(1,"cw1");
-  rCalmWeek(2,"cw2");
-  rCalmWeek(3,"cw3");
-  rCalmProgress();
-  var cur=calmCurrentDay();
-  var curW=Math.ceil(cur/7);
-  document.querySelectorAll("#sc-calma .tb").forEach(function(b,i){b.classList.toggle("on",i===curW-1);});
-  [1,2,3].forEach(function(w){var e=document.getElementById("cw"+w);if(e)e.style.display=(w===curW)?"block":"none";});
+  if(isPostReto()){
+    document.getElementById("calma-reto").style.display="none";
+    document.getElementById("calma-post").style.display="block";
+    rPostTodayCard();
+    rPostHistory();
+  } else {
+    document.getElementById("calma-reto").style.display="block";
+    document.getElementById("calma-post").style.display="none";
+    rCalmWeek(1,"cw1");
+    rCalmWeek(2,"cw2");
+    rCalmWeek(3,"cw3");
+    rCalmProgress();
+    var cur=calmCurrentDay();
+    var curW=Math.ceil(cur/7);
+    document.querySelectorAll("#calma-reto .tb").forEach(function(b,i){b.classList.toggle("on",i===curW-1);});
+    [1,2,3].forEach(function(w){var e=document.getElementById("cw"+w);if(e)e.style.display=(w===curW)?"block":"none";});
+  }
 }
 
 function showCW(el,w){
   [1,2,3].forEach(function(n){var e=document.getElementById("cw"+n);if(e)e.style.display=(n===parseInt(w))?"block":"none";});
-  document.querySelectorAll("#sc-calma .tb").forEach(function(b){b.classList.remove("on");});
+  document.querySelectorAll("#calma-reto .tb").forEach(function(b){b.classList.remove("on");});
   el.classList.add("on");
 }
 
