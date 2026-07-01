@@ -11,6 +11,8 @@
 <link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAA7ElEQVR4nO1XSxLCMAgljHewZ9Nj6DHsMezZ7Cl01RmaQAI0ny5klwTeeyVAJwEY+zxuX26/hk3zEuh6t2hJLAnBEeSUL4wgp4Zll8YCRn49AMBFOri+3uz++rxnAa1xIc6ABFAC9MbtakALEvt64wBIBiwgNWzLxPguOIWA3umnnOfIwHABpeHSwv5dkAjoeQ2UC6WDHuSJgNYiOGy2BlqIkDDFIqwpIoeV7YIaIkoYxTY8IkITq5oDHhHaGPUgsoiw+JomoQbYmi2M32pHCDxX5foXcETeYkWA9MVqFeEln+YlIF24UJy28f0A8jZlwnhv6KgAAAAASUVORK5CYII=">
 <title>Proyecto Paula</title>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
+<script defer src="/_vercel/insights/script.js"></script>
 <style>
 :root {
   --sage:#E8735A;--sage-l:#FDEEE9;--sage-d:#C4523A;
@@ -210,6 +212,25 @@ html,body{height:100%;font-family:"Nunito",sans-serif;background:var(--cream);co
 .calm-day-card.calm-today{border:2px solid var(--sage-d)!important;}
 .calm-progress{height:7px;background:var(--cream-d);border-radius:4px;overflow:hidden;margin:8px 0 2px;}
 .calm-bar{height:100%;background:var(--sage-d);border-radius:4px;transition:width 0.5s ease;}
+.plan-tab{padding:8px 2px;border-radius:var(--r-sm);border:1.5px solid var(--border);background:white;cursor:pointer;font-family:'Nunito',sans-serif;text-align:center;font-size:16px;line-height:1.4;transition:all .15s;color:var(--ink);}
+.plan-tab.on{background:var(--cream-d);border-color:var(--ink-m);font-weight:700;}
+.coach-sec{border-top:1px solid var(--border-s);padding-top:12px;margin-top:12px;}
+.coach-sh{font-size:13px;font-weight:700;color:var(--ink);margin-bottom:4px;}
+.coach-rule{font-size:11px;font-weight:400;color:var(--ink-m);margin-left:6px;}
+.coach-tip{font-size:11px;color:var(--ink-m);line-height:1.5;margin-bottom:8px;}
+.coach-chips{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0;}
+.chip-warn{border-color:var(--amber)!important;color:var(--amber)!important;}
+.chip-limit{border-color:var(--coral)!important;color:var(--coral)!important;text-decoration:line-through;}
+.idea-card{padding:10px 12px;border:1.5px solid var(--border-s);border-radius:var(--r-sm);margin-bottom:8px;display:flex;align-items:center;gap:10px;}
+.idea-name{font-size:13px;font-weight:600;color:var(--ink);line-height:1.4;flex:1;}
+.idea-desc{font-size:11px;color:var(--ink-m);margin-top:2px;}
+.idea-use{font-size:11px;font-weight:700;padding:5px 10px;border-radius:20px;border:none;cursor:pointer;font-family:'Nunito',sans-serif;white-space:nowrap;flex-shrink:0;}
+#reg-toast{position:fixed;bottom:90px;left:16px;right:16px;z-index:500;background:var(--ink);color:white;border-radius:var(--r);padding:14px 16px;box-shadow:var(--shadow-md);transform:translateY(20px);opacity:0;transition:transform .3s ease,opacity .3s ease;pointer-events:none;}
+#reg-toast.show{transform:translateY(0);opacity:1;pointer-events:auto;}
+.toast-title{font-size:13px;font-weight:700;margin-bottom:8px;color:white;}
+.toast-item{font-size:12px;color:rgba(255,255,255,0.82);line-height:1.5;padding:3px 0;border-top:1px solid rgba(255,255,255,0.08);}
+.toast-item:first-of-type{border-top:none;padding-top:0;}
+.toast-close{position:absolute;top:10px;right:12px;font-size:16px;color:rgba(255,255,255,0.5);cursor:pointer;padding:4px;}
 </style>
 </head>
 <body>
@@ -238,34 +259,50 @@ html,body{height:100%;font-family:"Nunito",sans-serif;background:var(--cream);co
 
   <!-- COMIDAS -->
   <div id="rr">
-    <div class="card" id="add-card">
-      <div class="ct">Nueva entrada</div>
-      <div class="meal-types">
-        <button class="mt-card D" data-fn="selT" data-arg="D">
-          <span class="mt-emoji">🌅</span><span class="mt-lbl">Desayuno</span>
-        </button>
-        <button class="mt-card A" data-fn="selT" data-arg="A">
-          <span class="mt-emoji">☀️</span><span class="mt-lbl">Almuerzo</span>
-        </button>
-        <button class="mt-card M" data-fn="selT" data-arg="M">
-          <span class="mt-emoji">🍎</span><span class="mt-lbl">Merienda</span>
-        </button>
-        <button class="mt-card C" data-fn="selT" data-arg="C">
-          <span class="mt-emoji">🌙</span><span class="mt-lbl">Cena</span>
-        </button>
+    <div class="card" style="margin-bottom:10px">
+      <div style="font-size:11px;font-weight:700;color:var(--ink-m);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">Seguimiento de hoy</div>
+      <div id="daily-tracker"></div>
+    </div>
+    <div class="card" id="add-card" style="margin-bottom:10px">
+      <div class="ct">Nueva comida</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px;margin-bottom:12px">
+        <button id="csel-D" onclick="setCoachMeal('D')" style="padding:8px 2px;border-radius:var(--r-sm);border:1.5px solid var(--border);background:white;cursor:pointer;font-family:'Nunito',sans-serif;text-align:center;transition:all .15s"><div style="font-size:16px">🌅</div><div style="font-size:10px;font-weight:700;color:var(--ink)">Desayuno</div><div style="font-size:9px;color:var(--ink-m)">08:30</div></button>
+        <button id="csel-A" onclick="setCoachMeal('A')" style="padding:8px 2px;border-radius:var(--r-sm);border:1.5px solid var(--border);background:white;cursor:pointer;font-family:'Nunito',sans-serif;text-align:center;transition:all .15s"><div style="font-size:16px">☀️</div><div style="font-size:10px;font-weight:700;color:var(--ink)">Almuerzo</div><div style="font-size:9px;color:var(--ink-m)">13:00</div></button>
+        <button id="csel-M" onclick="setCoachMeal('M')" style="padding:8px 2px;border-radius:var(--r-sm);border:1.5px solid var(--border);background:white;cursor:pointer;font-family:'Nunito',sans-serif;text-align:center;transition:all .15s"><div style="font-size:16px">🍎</div><div style="font-size:10px;font-weight:700;color:var(--ink)">Merienda</div><div style="font-size:9px;color:var(--ink-m)">16:30</div></button>
+        <button id="csel-C" onclick="setCoachMeal('C')" style="padding:8px 2px;border-radius:var(--r-sm);border:1.5px solid var(--border);background:white;cursor:pointer;font-family:'Nunito',sans-serif;text-align:center;transition:all .15s"><div style="font-size:16px">🌙</div><div style="font-size:10px;font-weight:700;color:var(--ink)">Cena</div><div style="font-size:9px;color:var(--ink-m)">20:00</div></button>
       </div>
-      <div class="fg2">
-        <div class="ff"><label class="fl">Fecha</label><input type="date" id="id" class="fi"></div>
-        <div class="ff"><label class="fl">Hora</label><input type="time" id="it" class="fi"></div>
+      <div class="fg2" style="margin-bottom:4px">
+        <div class="ff"><label class="fl">Fecha</label><input type="date" id="coach-date" class="fi"></div>
+        <div class="ff"><label class="fl">Hora</label><input type="time" id="coach-time" class="fi"></div>
       </div>
-      <div class="ff">
-        <label class="fl">Que comiste</label>
-        <input type="text" id="iw" class="fi" placeholder="ej: 2 huevos + palta + cafe">
-        <div class="suggestions" id="sugs"></div>
+      <div id="coach-content" style="display:none">
+        <div class="coach-sec">
+          <div class="coach-sh">🍖 Proteína <span class="coach-rule">¼ del plato</span></div>
+          <div id="coach-tip-prot" class="coach-tip"></div>
+          <div id="coach-chips-prot" class="coach-chips"></div>
+          <input type="text" id="coach-extra-prot" class="fi" placeholder="Otro ingrediente..." oninput="updateCoachPreview()" style="margin-top:6px;font-size:12px">
+        </div>
+        <div class="coach-sec" id="coach-veg-sec">
+          <div class="coach-sh">🥦 Vegetales <span class="coach-rule">½ del plato</span></div>
+          <div class="coach-tip">Más colores = más nutrientes · evitá papa, batata, choclo, boniato</div>
+          <div id="coach-chips-veg" class="coach-chips"></div>
+          <input type="text" id="coach-extra-veg" class="fi" placeholder="Otro vegetal..." oninput="updateCoachPreview()" style="margin-top:6px;font-size:12px">
+        </div>
+        <div class="coach-sec">
+          <div class="coach-sh">🫒 Grasa <span class="coach-rule">¼ del plato</span></div>
+          <div id="coach-tip-fat" class="coach-tip"></div>
+          <div id="coach-chips-fat" class="coach-chips"></div>
+          <input type="text" id="coach-extra-fat" class="fi" placeholder="Otra grasa..." oninput="updateCoachPreview()" style="margin-top:6px;font-size:12px">
+        </div>
+        <div id="coach-preview" style="display:none;background:var(--cream-d);border-radius:var(--r-sm);padding:10px 12px;margin-top:10px">
+          <div style="font-size:11px;font-weight:700;color:var(--ink-m);margin-bottom:4px">Tu plato:</div>
+          <div id="coach-preview-text" style="font-size:13px;font-weight:600;color:var(--ink);line-height:1.5"></div>
+          <div id="coach-alerts"></div>
+        </div>
+        <div class="ff" style="margin-top:10px"><label class="fl">Nota (opcional)</label><input type="text" id="coach-note" class="fi" placeholder="ej: me sentí bien, comí rápido..."></div>
+        <button class="btn-primary" onclick="saveFromCoach()" style="margin-top:4px">💾 Guardar comida</button>
+        <div id="coach-ok" style="font-size:12px;text-align:center;margin-top:6px;min-height:14px;color:var(--sage-d);font-weight:600"></div>
       </div>
-      <div class="ff"><label class="fl">Nota (opcional)</label><input type="text" id="in" class="fi" placeholder="ej: me senti bien..."></div>
-      <button class="btn-primary" data-fn="addE">+ Agregar comida</button>
-      <div style="font-size:12px;text-align:center;margin-top:8px;min-height:14px;color:var(--sage-d);font-weight:500" id="efb"></div>
     </div>
     <div class="card" id="today-card">
       <div class="ct" id="tlbl">Hoy</div>
@@ -382,169 +419,28 @@ html,body{height:100%;font-family:"Nunito",sans-serif;background:var(--cream);co
 
 <!-- PLAN -->
 <div id="sc-plan" class="sc">
-  <div style="font-family:'Nunito',sans-serif;font-size:22px;font-weight:800;margin-bottom:4px">Plan semanal</div>
-  <p style="font-size:12px;color:var(--ink-m);margin-bottom:12px">8 - 21 junio 2026</p>
-  <div style="display:flex;gap:8px;margin-bottom:12px">
-    <button class="week-sel-btn db on" data-fn="showWeek" data-arg="1" style="flex:1;text-align:center">Sem 1 · 8–14 jun</button>
-    <button class="week-sel-btn db" data-fn="showWeek" data-arg="2" style="flex:1;text-align:center">Sem 2 · 15–21 jun</button>
+  <div style="font-family:'Nunito',sans-serif;font-size:22px;font-weight:800;margin-bottom:14px">Plan 🍽</div>
+  <div class="card" style="margin-bottom:14px;padding:12px 14px">
+    <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-m);margin-bottom:10px">Horarios de referencia</div>
+    <div style="display:flex;justify-content:space-around;align-items:center">
+      <div style="text-align:center"><div style="font-size:20px;margin-bottom:4px">🌅</div><div style="font-size:13px;font-weight:800;color:var(--sage-d)">08:30</div><div style="font-size:10px;color:var(--ink-m);margin-top:2px">Desayuno</div></div>
+      <div style="font-size:12px;color:var(--border)">—</div>
+      <div style="text-align:center"><div style="font-size:20px;margin-bottom:4px">☀️</div><div style="font-size:13px;font-weight:800;color:var(--blue)">13:00</div><div style="font-size:10px;color:var(--ink-m);margin-top:2px">Almuerzo</div></div>
+      <div style="font-size:12px;color:var(--border)">—</div>
+      <div style="text-align:center"><div style="font-size:20px;margin-bottom:4px">🍎</div><div style="font-size:13px;font-weight:800;color:var(--amber)">16:30</div><div style="font-size:10px;color:var(--ink-m);margin-top:2px">Merienda</div></div>
+      <div style="font-size:12px;color:var(--border)">—</div>
+      <div style="text-align:center"><div style="font-size:20px;margin-bottom:4px">🌙</div><div style="font-size:13px;font-weight:800;color:var(--purple)">20:00</div><div style="font-size:10px;color:var(--ink-m);margin-top:2px">Cena</div></div>
+    </div>
+    <div style="font-size:10px;color:var(--ink-m);text-align:center;margin-top:10px;border-top:1px solid var(--border-s);padding-top:8px">Entre comidas: 3–5 hs · Reposo nocturno: 12 hs</div>
   </div>
-  <div class="tabs">
-    <button class="tb on" data-fn="showPT" data-arg="dias">Dias</button>
-    <button class="tb" data-fn="showPT" data-arg="prep">Meal prep</button>
-  </div>
-
-  <div id="dias">
-    <div class="dsel dsel-w1" id="dsel-w1">
-      <button class="db on" data-fn="showPD" data-arg="lun8">Lun 8</button>
-      <button class="db" data-fn="showPD" data-arg="mar9">Mar 9</button>
-      <button class="db" data-fn="showPD" data-arg="mie10">Mie 10</button>
-      <button class="db" data-fn="showPD" data-arg="jue11">Jue 11</button>
-      <button class="db" data-fn="showPD" data-arg="vie12">Vie 12</button>
-      <button class="db" data-fn="showPD" data-arg="sab13">Sab 13</button>
-      <button class="db" data-fn="showPD" data-arg="dom14">Dom 14</button>
+  <div class="card">
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:4px;margin-bottom:14px" id="plan-tabs">
+      <button class="plan-tab on" onclick="showMealIdeas(this,'D')">🌅<br><span style="font-size:10px">Desayuno</span></button>
+      <button class="plan-tab" onclick="showMealIdeas(this,'A')">☀️<br><span style="font-size:10px">Almuerzo</span></button>
+      <button class="plan-tab" onclick="showMealIdeas(this,'M')">🍎<br><span style="font-size:10px">Merienda</span></button>
+      <button class="plan-tab" onclick="showMealIdeas(this,'C')">🌙<br><span style="font-size:10px">Cena</span></button>
     </div>
-    <div class="dsel dsel-w2" id="dsel-w2" style="display:none">
-      <button class="db on" data-fn="showPD" data-arg="lun15">Lun 15</button>
-      <button class="db" data-fn="showPD" data-arg="mar16">Mar 16</button>
-      <button class="db" data-fn="showPD" data-arg="mie17">Mie 17</button>
-      <button class="db" data-fn="showPD" data-arg="jue18">Jue 18</button>
-      <button class="db" data-fn="showPD" data-arg="vie19">Vie 19</button>
-      <button class="db" data-fn="showPD" data-arg="sab20">Sab 20</button>
-      <button class="db" data-fn="showPD" data-arg="dom21">Dom 21</button>
-    </div>
-
-    <div id="d-lun8">
-      <div class="turn-pill" style="background:#F1EFE8;color:#5F5E5A">🏠 Dia libre</div>
-      <div class="meal-row"><div class="meal-type-bar" style="background:var(--sage-d)"></div><div class="meal-inner"><div class="meal-header"><span class="meal-lbl" style="color:var(--sage-d)">Desayuno</span><span class="meal-time-txt">~09:00</span></div><div class="meal-name">Pancake salado: huevo + jamon + cafe</div><div class="meal-detail">1 huevo + 1 clara + cda harina almendras + polvo hornear + 1 feta jamon + queso feta. Con tomates cherry.</div><div class="meal-where"><span class="badge bm">en casa</span></div></div></div>
-      <div class="meal-row"><div class="meal-type-bar" style="background:var(--blue)"></div><div class="meal-inner"><div class="meal-header"><span class="meal-lbl" style="color:var(--blue)">Almuerzo</span><span class="meal-time-txt">~13:00</span></div><div class="meal-name">Pollo a la plancha + ensalada</div><div class="meal-detail">Pechuga a la plancha con ghee + ensalada: lechuga, tomate cherry, zanahoria, pepino + aceite oliva</div><div class="meal-where"><span class="badge bm">en casa</span></div></div></div>
-      <div class="meal-row"><div class="meal-type-bar" style="background:var(--amber)"></div><div class="meal-inner"><div class="meal-header"><span class="meal-lbl" style="color:var(--amber)">Merienda</span><span class="meal-time-txt">~16:30</span></div><div class="meal-name">Skyr + frutillas + almendras</div><div class="meal-detail">Skyr natural + frutillas congeladas + almendras + chia</div><div class="meal-where"><span class="badge bm">en casa</span></div></div></div>
-      <div class="meal-row"><div class="meal-type-bar" style="background:var(--purple)"></div><div class="meal-inner"><div class="meal-header"><span class="meal-lbl" style="color:var(--purple)">Cena</span><span class="meal-time-txt">~20:00</span></div><div class="meal-name">Camarones al ajillo + brocoli</div><div class="meal-detail">Camarones + ajo + pimenton + ghee + brocoli al vapor + tomates cherry</div><div class="meal-where"><span class="badge bm">en casa</span></div></div></div>
-      <div class="note">⏰ Prep antes de dormir: chia pudding para manana (danes 8:45)</div>
-    </div>
-
-    <div id="d-mar9" style="display:none">
-      <div class="turn-pill" style="background:var(--blue-l);color:var(--blue)">📚 Danes 08:45–12:00 · 🏠 Libre despues</div>
-      <div class="meal-row"><div class="meal-type-bar" style="background:var(--sage-d)"></div><div class="meal-inner"><div class="meal-header"><span class="meal-lbl" style="color:var(--sage-d)">Desayuno</span><span class="meal-time-txt">~08:00</span></div><div class="meal-name">Skyr + berries + almendras</div><div class="meal-detail">Skyr natural + berries congeladas + almendras + chia. Sin cocinar, rapido antes de salir.</div><div class="meal-where"><span class="badge bm">en casa</span></div></div></div>
-      <div class="meal-row"><div class="meal-type-bar" style="background:var(--blue)"></div><div class="meal-inner"><div class="meal-header"><span class="meal-lbl" style="color:var(--blue)">Almuerzo</span><span class="meal-time-txt">~13:00</span></div><div class="meal-name">Costeletas de cerdo + wok vegs</div><div class="meal-detail">Costeletas a la plancha con ghee + wok vegs salteadas + ajo + sesamo</div><div class="meal-where"><span class="badge bm">en casa</span></div></div></div>
-      <div class="meal-row"><div class="meal-type-bar" style="background:var(--amber)"></div><div class="meal-inner"><div class="meal-header"><span class="meal-lbl" style="color:var(--amber)">Merienda</span><span class="meal-time-txt">~16:30</span></div><div class="meal-name">Chia pudding + fruta congelada</div><div class="meal-detail">2 cdas chia + leche de coco + berries congeladas + stevia</div><div class="meal-where"><span class="badge bm">en casa</span></div></div></div>
-      <div class="meal-row"><div class="meal-type-bar" style="background:var(--purple)"></div><div class="meal-inner"><div class="meal-header"><span class="meal-lbl" style="color:var(--purple)">Cena</span><span class="meal-time-txt">~20:00</span></div><div class="meal-name">Berenjena rellena de carne picada</div><div class="meal-detail">Carne picada vacuna + cebolla + morron + hongos + ghee</div><div class="meal-where"><span class="badge bm">en casa</span></div></div></div>
-      <div class="note">⏰ Prep antes de dormir: tupper pollo para Jue (floater 8:00, almuerzo en trabajo)</div>
-    </div>
-
-    <div id="d-mie10" style="display:none">
-      <div class="turn-pill" style="background:var(--amber-l);color:var(--amber)">🌙 Closing 12:00–20:00</div>
-      <div class="meal-row"><div class="meal-type-bar" style="background:var(--sage-d)"></div><div class="meal-inner"><div class="meal-header"><span class="meal-lbl" style="color:var(--sage-d)">Desayuno</span><span class="meal-time-txt">~08:30</span></div><div class="meal-name">2 huevos + tomates cherry + palta + cafe</div><div class="meal-detail">2 huevos revueltos con ghee + tomates cherry + media palta + cafe negro</div><div class="meal-where"><span class="badge bm">en casa</span></div></div></div>
-      <div class="meal-row"><div class="meal-type-bar" style="background:var(--blue)"></div><div class="meal-inner"><div class="meal-header"><span class="meal-lbl" style="color:var(--blue)">Almuerzo</span><span class="meal-time-txt">~11:30</span></div><div class="meal-name">Tortilla de atun + zanahoria + cebolla</div><div class="meal-detail">2 huevos + media lata atun + zanahoria rallada + cebolla + ghee. En casa antes de salir.</div><div class="meal-where"><span class="badge bm">en casa</span></div></div></div>
-      <div class="meal-row"><div class="meal-type-bar" style="background:var(--amber)"></div><div class="meal-inner"><div class="meal-header"><span class="meal-lbl" style="color:var(--amber)">Merienda</span><span class="meal-time-txt">~16:00</span></div><div class="meal-name">Skyr + berries del trabajo</div><div class="meal-detail">Skyr natural + berries + frutos secos. Break en el turno.</div><div class="meal-where"><span class="badge bs">trabajo</span></div></div></div>
-      <div class="meal-row"><div class="meal-type-bar" style="background:var(--purple)"></div><div class="meal-inner"><div class="meal-header"><span class="meal-lbl" style="color:var(--purple)">Cena</span><span class="meal-time-txt">~21:00</span></div><div class="meal-name">Zoodles con bolognesa de carne</div><div class="meal-detail">Fideos de zucchini + salsa bolognesa de carne vacuna. 15 min, rapido post-trabajo.</div><div class="meal-where"><span class="badge bm">en casa</span></div></div></div>
-    </div>
-
-    <div id="d-jue11" style="display:none">
-      <div class="turn-pill" style="background:var(--sage-l);color:var(--sage-d)">☀️ Floater 08:00–17:00</div>
-      <div class="meal-row"><div class="meal-type-bar" style="background:var(--sage-d)"></div><div class="meal-inner"><div class="meal-header"><span class="meal-lbl" style="color:var(--sage-d)">Desayuno</span><span class="meal-time-txt">~09:00</span></div><div class="meal-name">Chia pudding (prep anoche)</div><div class="meal-detail">En tarro. 2 cdas chia + leche de coco + berries + stevia. Come en el trabajo.</div><div class="meal-where"><span class="badge bs">trabajo</span></div></div></div>
-      <div class="meal-row"><div class="meal-type-bar" style="background:var(--blue)"></div><div class="meal-inner"><div class="meal-header"><span class="meal-lbl" style="color:var(--blue)">Almuerzo</span><span class="meal-time-txt">~12:00</span></div><div class="meal-name">Tupper frio: pollo en tiras + ensalada</div><div class="meal-detail">Pechuga cocida en tiras + lechuga + tomate cherry + zanahoria rallada + aceite oliva. Prep anoche.</div><div class="meal-where"><span class="badge bs">trabajo</span></div></div></div>
-      <div class="meal-row"><div class="meal-type-bar" style="background:var(--amber)"></div><div class="meal-inner"><div class="meal-header"><span class="meal-lbl" style="color:var(--amber)">Merienda</span><span class="meal-time-txt">~16:30</span></div><div class="meal-name">Skyr + berries del trabajo</div><div class="meal-detail">Skyr natural + berries + frutos secos. Break antes de salir.</div><div class="meal-where"><span class="badge bs">trabajo</span></div></div></div>
-      <div class="meal-row"><div class="meal-type-bar" style="background:var(--purple)"></div><div class="meal-inner"><div class="meal-header"><span class="meal-lbl" style="color:var(--purple)">Cena</span><span class="meal-time-txt">~19:30</span></div><div class="meal-name">Costeletas de cerdo + vegetales al horno</div><div class="meal-detail">Costeletas + zucchini + cebolla + morron al horno con aceite de coco + curcuma + ajo</div><div class="meal-where"><span class="badge bm">en casa</span></div></div></div>
-      <div class="note">⏰ Prep antes de dormir: tupper atun para Vie (30 min entre danes y trabajo)</div>
-    </div>
-
-    <div id="d-vie12" style="display:none">
-      <div class="turn-pill" style="background:var(--purple-l);color:var(--purple)">📚 Danes 08:45–12:00 · 🌙 Closing 13:00–19:30</div>
-      <div class="meal-row"><div class="meal-type-bar" style="background:var(--sage-d)"></div><div class="meal-inner"><div class="meal-header"><span class="meal-lbl" style="color:var(--sage-d)">Desayuno</span><span class="meal-time-txt">~08:00</span></div><div class="meal-name">Skyr con berries y almendras</div><div class="meal-detail">Skyr + berries + almendras. Sin cocinar, rapido antes de danes.</div><div class="meal-where"><span class="badge bm">en casa</span></div></div></div>
-      <div class="meal-row"><div class="meal-type-bar" style="background:var(--blue)"></div><div class="meal-inner"><div class="meal-header"><span class="meal-lbl" style="color:var(--blue)">Almuerzo</span><span class="meal-time-txt">~12:15</span></div><div class="meal-name">Tupper frio: atun + zanahoria + tomate</div><div class="meal-detail">Prep anoche. Media lata atun + zanahoria rallada + tomate cherry + aceite oliva + limon. 10 min para comer.</div><div class="meal-where"><span class="badge bm">en camino</span></div></div></div>
-      <div class="meal-row"><div class="meal-type-bar" style="background:var(--amber)"></div><div class="meal-inner"><div class="meal-header"><span class="meal-lbl" style="color:var(--amber)">Merienda</span><span class="meal-time-txt">~15:30</span></div><div class="meal-name">Skyr + berries del trabajo</div><div class="meal-detail">Skyr natural + berries + frutos secos. Break en el turno.</div><div class="meal-where"><span class="badge bs">trabajo</span></div></div></div>
-      <div class="meal-row"><div class="meal-type-bar" style="background:var(--purple)"></div><div class="meal-inner"><div class="meal-header"><span class="meal-lbl" style="color:var(--purple)">Cena</span><span class="meal-time-txt">~20:30</span></div><div class="meal-name">2 huevos + hongos + espinaca</div><div class="meal-detail">Huevos revueltos + hongos salteados + espinaca + ghee. 10 min, rapido post dia largo.</div><div class="meal-where"><span class="badge bm">en casa</span></div></div></div>
-      <div class="note">⏰ Prep antes de dormir: chia pudding para Sab (apertura 6:30)</div>
-    </div>
-
-    <div id="d-sab13" style="display:none">
-      <div class="turn-pill" style="background:var(--sage-l);color:var(--sage-d)">🌅 Apertura 06:30–14:00</div>
-      <div class="meal-row"><div class="meal-type-bar" style="background:var(--sage-d)"></div><div class="meal-inner"><div class="meal-header"><span class="meal-lbl" style="color:var(--sage-d)">Desayuno</span><span class="meal-time-txt">~09:00</span></div><div class="meal-name">Chia pudding (prep anoche)</div><div class="meal-detail">En tarro. 2 cdas chia + leche de coco + berries + stevia. Come en el trabajo.</div><div class="meal-where"><span class="badge bs">trabajo</span></div></div></div>
-      <div class="meal-row"><div class="meal-type-bar" style="background:var(--blue)"></div><div class="meal-inner"><div class="meal-header"><span class="meal-lbl" style="color:var(--blue)">Almuerzo</span><span class="meal-time-txt">~12:30</span></div><div class="meal-name">Ensalada del trabajo + huevo duro</div><div class="meal-detail">Lechuga + tomate cherry + pepino + queso havgus + huevo duro llevado de casa + aceite oliva</div><div class="meal-where"><span class="badge bs">trabajo</span></div></div></div>
-      <div class="meal-row"><div class="meal-type-bar" style="background:var(--amber)"></div><div class="meal-inner"><div class="meal-header"><span class="meal-lbl" style="color:var(--amber)">Merienda</span><span class="meal-time-txt">~15:30</span></div><div class="meal-name">Skyr + fruta + almendras</div><div class="meal-detail">Skyr natural + fruta congelada + almendras + chia</div><div class="meal-where"><span class="badge bm">en casa</span></div></div></div>
-      <div class="meal-row"><div class="meal-type-bar" style="background:var(--purple)"></div><div class="meal-inner"><div class="meal-header"><span class="meal-lbl" style="color:var(--purple)">Cena</span><span class="meal-time-txt">~19:30</span></div><div class="meal-name">Carne picada + vegetales salteados</div><div class="meal-detail">Carne picada vacuna + cebolla + morron + zucchini + tomate cherry + ghee + curcuma</div><div class="meal-where"><span class="badge bm">en casa</span></div></div></div>
-    </div>
-
-    <div id="d-dom14" style="display:none">
-      <div class="turn-pill" style="background:#F1EFE8;color:#5F5E5A">🏠 Dia libre</div>
-      <div class="meal-row"><div class="meal-type-bar" style="background:var(--sage-d)"></div><div class="meal-inner"><div class="meal-header"><span class="meal-lbl" style="color:var(--sage-d)">Desayuno</span><span class="meal-time-txt">~09:00</span></div><div class="meal-name">Pancake: 1 huevo + harina almendras + cafe</div><div class="meal-detail">1 huevo + 1 clara + cda harina almendras + polvo hornear + canela + stevia. Con compota de berries.</div><div class="meal-where"><span class="badge bm">en casa</span></div></div></div>
-      <div class="meal-row"><div class="meal-type-bar" style="background:var(--blue)"></div><div class="meal-inner"><div class="meal-header"><span class="meal-lbl" style="color:var(--blue)">Almuerzo</span><span class="meal-time-txt">~13:00</span></div><div class="meal-name">Pollo al horno + ensalada</div><div class="meal-detail">Pechuga al horno con ghee + ajo + curcuma + ensalada: repollo + zanahoria + tomate + aceite oliva</div><div class="meal-where"><span class="badge bm">en casa</span></div></div></div>
-      <div class="meal-row"><div class="meal-type-bar" style="background:var(--amber)"></div><div class="meal-inner"><div class="meal-header"><span class="meal-lbl" style="color:var(--amber)">Merienda</span><span class="meal-time-txt">~16:30</span></div><div class="meal-name">Skyr + manzana + nueces</div><div class="meal-detail">Skyr natural + manzana verde cortada + nueces + chia</div><div class="meal-where"><span class="badge bm">en casa</span></div></div></div>
-      <div class="meal-row"><div class="meal-type-bar" style="background:var(--purple)"></div><div class="meal-inner"><div class="meal-header"><span class="meal-lbl" style="color:var(--purple)">Cena</span><span class="meal-time-txt">~20:00</span></div><div class="meal-name">Tortilla: 2 huevos + espinaca + feta</div><div class="meal-detail">2 huevos + espinaca salteada + cebolla + queso feta + ghee</div><div class="meal-where"><span class="badge bm">en casa</span></div></div></div>
-    </div>
-
-    <!-- SEMANA 2 -->
-    <div id="d-lun15" style="display:none">
-      <div class="turn-pill" style="background:#F1EFE8;color:#5F5E5A">🏠 Dia libre</div>
-      <div class="meal-row"><div class="meal-type-bar" style="background:var(--sage-d)"></div><div class="meal-inner"><div class="meal-header"><span class="meal-lbl" style="color:var(--sage-d)">Desayuno</span><span class="meal-time-txt">~09:00</span></div><div class="meal-name">2 huevos + hongos + palta + cafe</div><div class="meal-detail">2 huevos revueltos con ghee + hongos salteados + media palta + cafe negro</div><div class="meal-where"><span class="badge bm">en casa</span></div></div></div>
-      <div class="meal-row"><div class="meal-type-bar" style="background:var(--blue)"></div><div class="meal-inner"><div class="meal-header"><span class="meal-lbl" style="color:var(--blue)">Almuerzo</span><span class="meal-time-txt">~13:00</span></div><div class="meal-name">Atun + ensalada completa</div><div class="meal-detail">Media lata atun natural + lechuga + tomate cherry + zanahoria + pepino + aceite oliva + limon</div><div class="meal-where"><span class="badge bm">en casa</span></div></div></div>
-      <div class="meal-row"><div class="meal-type-bar" style="background:var(--amber)"></div><div class="meal-inner"><div class="meal-header"><span class="meal-lbl" style="color:var(--amber)">Merienda</span><span class="meal-time-txt">~16:30</span></div><div class="meal-name">Chia pudding + berries</div><div class="meal-detail">2 cdas chia + leche de coco + berries congeladas + stevia</div><div class="meal-where"><span class="badge bm">en casa</span></div></div></div>
-      <div class="meal-row"><div class="meal-type-bar" style="background:var(--purple)"></div><div class="meal-inner"><div class="meal-header"><span class="meal-lbl" style="color:var(--purple)">Cena</span><span class="meal-time-txt">~20:00</span></div><div class="meal-name">Costeletas de cerdo + wok vegs</div><div class="meal-detail">Costeletas a la plancha + wok vegs salteadas + ajo + salsa de soja + sesamo + ghee</div><div class="meal-where"><span class="badge bm">en casa</span></div></div></div>
-      <div class="note">⏰ Prep antes de dormir: chia pudding + chia pudding + tupper pollo para Mar (danes 8:45 + closing)</div>
-    </div>
-
-    <div id="d-mar16" style="display:none">
-      <div class="turn-pill" style="background:var(--purple-l);color:var(--purple)">📚 Danes 08:45–12:00 · 🌙 Closing 13:00–20:00</div>
-      <div class="meal-row"><div class="meal-type-bar" style="background:var(--sage-d)"></div><div class="meal-inner"><div class="meal-header"><span class="meal-lbl" style="color:var(--sage-d)">Desayuno</span><span class="meal-time-txt">~08:00</span></div><div class="meal-name">Skyr con berries y almendras</div><div class="meal-detail">Skyr + berries + almendras. Sin cocinar, rapido antes de danes.</div><div class="meal-where"><span class="badge bm">en casa</span></div></div></div>
-      <div class="meal-row"><div class="meal-type-bar" style="background:var(--blue)"></div><div class="meal-inner"><div class="meal-header"><span class="meal-lbl" style="color:var(--blue)">Almuerzo</span><span class="meal-time-txt">~12:15</span></div><div class="meal-name">Tupper frio: pollo + zanahoria + tomate</div><div class="meal-detail">Prep anoche. Pechuga en tiras + zanahoria rallada + tomate cherry + aceite oliva. 10 min para comer.</div><div class="meal-where"><span class="badge bm">en camino</span></div></div></div>
-      <div class="meal-row"><div class="meal-type-bar" style="background:var(--amber)"></div><div class="meal-inner"><div class="meal-header"><span class="meal-lbl" style="color:var(--amber)">Merienda</span><span class="meal-time-txt">~15:30</span></div><div class="meal-name">Skyr + berries del trabajo</div><div class="meal-detail">Skyr natural + berries + frutos secos. Break en el turno.</div><div class="meal-where"><span class="badge bs">trabajo</span></div></div></div>
-      <div class="meal-row"><div class="meal-type-bar" style="background:var(--purple)"></div><div class="meal-inner"><div class="meal-header"><span class="meal-lbl" style="color:var(--purple)">Cena</span><span class="meal-time-txt">~21:00</span></div><div class="meal-name">Tortilla de atun rapida</div><div class="meal-detail">2 huevos + media lata atun + espinaca + queso feta. 10 min. Post-dia largo.</div><div class="meal-where"><span class="badge bm">en casa</span></div></div></div>
-    </div>
-
-    <div id="d-mie17" style="display:none">
-      <div class="turn-pill" style="background:var(--amber-l);color:var(--amber)">🎯 Evento 09:00–10:00 · 🏠 Libre despues</div>
-      <div class="meal-row"><div class="meal-type-bar" style="background:var(--sage-d)"></div><div class="meal-inner"><div class="meal-header"><span class="meal-lbl" style="color:var(--sage-d)">Desayuno</span><span class="meal-time-txt">~08:30</span></div><div class="meal-name">Skyr rapido con berries</div><div class="meal-detail">Skyr + berries congeladas + almendras. Sin cocinar antes del evento.</div><div class="meal-where"><span class="badge bm">en casa</span></div></div></div>
-      <div class="meal-row"><div class="meal-type-bar" style="background:var(--blue)"></div><div class="meal-inner"><div class="meal-header"><span class="meal-lbl" style="color:var(--blue)">Almuerzo</span><span class="meal-time-txt">~13:00</span></div><div class="meal-name">Camarones al ajillo + brocoli</div><div class="meal-detail">Camarones + ajo + pimenton + ghee + brocoli al vapor + ensalada de hojas verdes</div><div class="meal-where"><span class="badge bm">en casa</span></div></div></div>
-      <div class="meal-row"><div class="meal-type-bar" style="background:var(--amber)"></div><div class="meal-inner"><div class="meal-header"><span class="meal-lbl" style="color:var(--amber)">Merienda</span><span class="meal-time-txt">~16:30</span></div><div class="meal-name">Yogurt + manzana + almendras</div><div class="meal-detail">Yogurt griego + manzana verde + almendras + chia</div><div class="meal-where"><span class="badge bm">en casa</span></div></div></div>
-      <div class="meal-row"><div class="meal-type-bar" style="background:var(--purple)"></div><div class="meal-inner"><div class="meal-header"><span class="meal-lbl" style="color:var(--purple)">Cena</span><span class="meal-time-txt">~20:00</span></div><div class="meal-name">Berenjena rellena de carne picada</div><div class="meal-detail">Carne picada vacuna + cebolla + morron + hongos + ghee. Al horno.</div><div class="meal-where"><span class="badge bm">en casa</span></div></div></div>
-    </div>
-
-    <div id="d-jue18" style="display:none">
-      <div class="turn-pill" style="background:var(--blue-l);color:var(--blue)">📝 Examen danes 09:00–12:00</div>
-      <div class="meal-row"><div class="meal-type-bar" style="background:var(--sage-d)"></div><div class="meal-inner"><div class="meal-header"><span class="meal-lbl" style="color:var(--sage-d)">Desayuno</span><span class="meal-time-txt">~08:00</span></div><div class="meal-name">2 huevos + palta + cafe (pre-examen)</div><div class="meal-detail">Proteina estable, sin picos de azucar. Nada que te de sueno en el examen.</div><div class="meal-where"><span class="badge bm">en casa</span></div></div></div>
-      <div class="meal-row"><div class="meal-type-bar" style="background:var(--blue)"></div><div class="meal-inner"><div class="meal-header"><span class="meal-lbl" style="color:var(--blue)">Almuerzo</span><span class="meal-time-txt">~13:00</span></div><div class="meal-name">Pollo al horno + ensalada 🎉</div><div class="meal-detail">Pechuga al horno + ensalada de repollo + zanahoria + tomate + aceite oliva. Post-examen, merecelo.</div><div class="meal-where"><span class="badge bm">en casa</span></div></div></div>
-      <div class="meal-row"><div class="meal-type-bar" style="background:var(--amber)"></div><div class="meal-inner"><div class="meal-header"><span class="meal-lbl" style="color:var(--amber)">Merienda</span><span class="meal-time-txt">~16:30</span></div><div class="meal-name">Skyr + fruta + nueces</div><div class="meal-detail">Skyr natural + fruta congelada + nueces + chia</div><div class="meal-where"><span class="badge bm">en casa</span></div></div></div>
-      <div class="meal-row"><div class="meal-type-bar" style="background:var(--purple)"></div><div class="meal-inner"><div class="meal-header"><span class="meal-lbl" style="color:var(--purple)">Cena</span><span class="meal-time-txt">~20:00</span></div><div class="meal-name">Costeletas de cerdo + vegetales al horno</div><div class="meal-detail">Costeletas + zucchini + morron + cebolla al horno con aceite de coco + curcuma</div><div class="meal-where"><span class="badge bm">en casa</span></div></div></div>
-      <div class="note">⏰ Prep antes de dormir: chia pudding + tupper atun para Vie (floater 9:00)</div>
-    </div>
-
-    <div id="d-vie19" style="display:none">
-      <div class="turn-pill" style="background:var(--sage-l);color:var(--sage-d)">☀️ Floater 09:00–15:00</div>
-      <div class="meal-row"><div class="meal-type-bar" style="background:var(--sage-d)"></div><div class="meal-inner"><div class="meal-header"><span class="meal-lbl" style="color:var(--sage-d)">Desayuno</span><span class="meal-time-txt">~09:00</span></div><div class="meal-name">Chia pudding (prep anoche)</div><div class="meal-detail">En tarro. Chia + leche de coco + berries. Come en el trabajo.</div><div class="meal-where"><span class="badge bs">trabajo</span></div></div></div>
-      <div class="meal-row"><div class="meal-type-bar" style="background:var(--blue)"></div><div class="meal-inner"><div class="meal-header"><span class="meal-lbl" style="color:var(--blue)">Almuerzo</span><span class="meal-time-txt">~12:00</span></div><div class="meal-name">Tupper frio: atun + zanahoria + tomate</div><div class="meal-detail">Media lata atun + zanahoria rallada + tomate cherry + aceite oliva + limon. Prep anoche.</div><div class="meal-where"><span class="badge bs">trabajo</span></div></div></div>
-      <div class="meal-row"><div class="meal-type-bar" style="background:var(--amber)"></div><div class="meal-inner"><div class="meal-header"><span class="meal-lbl" style="color:var(--amber)">Merienda</span><span class="meal-time-txt">~16:00</span></div><div class="meal-name">Yogurt con manzana y almendras</div><div class="meal-detail">Yogurt griego + manzana + almendras + chia. Ya en casa.</div><div class="meal-where"><span class="badge bm">en casa</span></div></div></div>
-      <div class="meal-row"><div class="meal-type-bar" style="background:var(--purple)"></div><div class="meal-inner"><div class="meal-header"><span class="meal-lbl" style="color:var(--purple)">Cena</span><span class="meal-time-txt">~19:30</span></div><div class="meal-name">Tortilla: 2 huevos + hongos + espinaca</div><div class="meal-detail">2 huevos + hongos salteados + espinaca + ghee. Simple y rapido.</div><div class="meal-where"><span class="badge bm">en casa</span></div></div></div>
-    </div>
-
-    <div id="d-sab20" style="display:none">
-      <div class="turn-pill" style="background:#F1EFE8;color:#5F5E5A">🏠 Dia libre</div>
-      <div class="meal-row"><div class="meal-type-bar" style="background:var(--sage-d)"></div><div class="meal-inner"><div class="meal-header"><span class="meal-lbl" style="color:var(--sage-d)">Desayuno</span><span class="meal-time-txt">~09:00</span></div><div class="meal-name">Crepe: 2 huevos + jamon + palta + cafe</div><div class="meal-detail">2 huevos + chia + curcuma + 1 feta jamon + media palta + tomates cherry + cafe</div><div class="meal-where"><span class="badge bm">en casa</span></div></div></div>
-      <div class="meal-row"><div class="meal-type-bar" style="background:var(--blue)"></div><div class="meal-inner"><div class="meal-header"><span class="meal-lbl" style="color:var(--blue)">Almuerzo</span><span class="meal-time-txt">~13:00</span></div><div class="meal-name">Carne vacuna + ensalada</div><div class="meal-detail">Churrasco a la plancha con ghee + ensalada: repollo + zanahoria + tomate + aceite oliva</div><div class="meal-where"><span class="badge bm">en casa</span></div></div></div>
-      <div class="meal-row"><div class="meal-type-bar" style="background:var(--amber)"></div><div class="meal-inner"><div class="meal-header"><span class="meal-lbl" style="color:var(--amber)">Merienda</span><span class="meal-time-txt">~16:30</span></div><div class="meal-name">Chia pudding + frutos rojos</div><div class="meal-detail">2 cdas chia + leche de coco + frutos rojos congelados + stevia</div><div class="meal-where"><span class="badge bm">en casa</span></div></div></div>
-      <div class="meal-row"><div class="meal-type-bar" style="background:var(--purple)"></div><div class="meal-inner"><div class="meal-header"><span class="meal-lbl" style="color:var(--purple)">Cena</span><span class="meal-time-txt">~20:00</span></div><div class="meal-name">Camarones + esparragos al ajillo</div><div class="meal-detail">Camarones + esparragos + ajo + pimenton + ghee + brocoli</div><div class="meal-where"><span class="badge bm">en casa</span></div></div></div>
-      <div class="note">⏰ Prep antes de dormir: chia pudding para Dom (apertura 6:30)</div>
-    </div>
-
-    <div id="d-dom21" style="display:none">
-      <div class="turn-pill" style="background:var(--sage-l);color:var(--sage-d)">🌅 Apertura 06:30–14:00</div>
-      <div class="meal-row"><div class="meal-type-bar" style="background:var(--sage-d)"></div><div class="meal-inner"><div class="meal-header"><span class="meal-lbl" style="color:var(--sage-d)">Desayuno</span><span class="meal-time-txt">~09:00</span></div><div class="meal-name">Chia pudding (prep anoche)</div><div class="meal-detail">En tarro. Chia + leche de coco + berries. Come en el trabajo.</div><div class="meal-where"><span class="badge bs">trabajo</span></div></div></div>
-      <div class="meal-row"><div class="meal-type-bar" style="background:var(--blue)"></div><div class="meal-inner"><div class="meal-header"><span class="meal-lbl" style="color:var(--blue)">Almuerzo</span><span class="meal-time-txt">~12:30</span></div><div class="meal-name">Ensalada del trabajo + atun</div><div class="meal-detail">Lechuga + tomate cherry + pepino + queso havgus + media lata atun + aceite oliva</div><div class="meal-where"><span class="badge bs">trabajo</span></div></div></div>
-      <div class="meal-row"><div class="meal-type-bar" style="background:var(--amber)"></div><div class="meal-inner"><div class="meal-header"><span class="meal-lbl" style="color:var(--amber)">Merienda</span><span class="meal-time-txt">~15:30</span></div><div class="meal-name">Skyr + fruta + semillas</div><div class="meal-detail">Skyr + fruta congelada + semillas de zapallo + almendras</div><div class="meal-where"><span class="badge bm">en casa</span></div></div></div>
-      <div class="meal-row"><div class="meal-type-bar" style="background:var(--purple)"></div><div class="meal-inner"><div class="meal-header"><span class="meal-lbl" style="color:var(--purple)">Cena</span><span class="meal-time-txt">~19:30</span></div><div class="meal-name">2 huevos + cebolla + morron + hongos</div><div class="meal-detail">Omelette: 2 huevos + cebolla de verdeo + morron + hongos salteados + ghee. Rapido post-apertura.</div><div class="meal-where"><span class="badge bm">en casa</span></div></div></div>
-    </div>
-  </div>
-
-  <div id="prep" style="display:none">
-    <div class="card">
-      <div class="ct">Prep semanal ~30 min (hacer Dom 7 o Lun 8)</div>
-      <div class="pb"><div class="pb-num">1</div><div><div class="pb-title">Pechuga de pollo cocida (20 min)</div><div class="pb-step">Cocinar 2 pechugas en agua con sal y condimentos. Dejar enfriar y cortar en tiras. En tupper en heladera hasta 4 dias. Para almuerzos en trabajo: Jue 11, Mar 16.</div></div></div>
-      <div class="pb"><div class="pb-num">2</div><div><div class="pb-title">Zanahoria rallada</div><div class="pb-step">Rallar 4-5 zanahorias. Tupper con tapa. Dura 5 dias. Para todos los tuppers y ensaladas.</div></div></div>
-      <div class="pb"><div class="pb-num">3</div><div><div class="pb-title">Huevos duros x4</div><div class="pb-step">Hervir 10 min. Enfriar. Guardar con cascara hasta 5 dias. Para almuerzos trabajo en apertura (Sab 13).</div></div></div>
-      <div class="pb"><div class="pb-num">4</div><div><div class="pb-title">Zanahoria rallada</div><div class="pb-step">Rallar 4-5 zanahorias. Tupper con tapa. Dura 5 dias. Repeti a mitad de semana.</div></div></div>
-      <div class="pb"><div class="pb-num">5</div><div><div class="pb-title">Huevos duros x4</div><div class="pb-step">Hervir 10 min. Enfriar. Guardar con cascara hasta 5 dias. Repeti para semana 2.</div></div></div>
-      <div class="pb"><div class="pb-num" style="background:var(--blue)">6</div><div><div class="pb-title" style="color:var(--blue)">Chia pudding (noche antes de cada dia ocupado)</div><div class="pb-step">3 cdas chia + 200ml leche de coco + stevia. Heladera minimo 4hs. Noches clave: Dom 7, Lun 8, Mie 10, Vie 12, Lun 15, Jue 18, Sab 20.</div></div></div>
-      <div class="pb"><div class="pb-num" style="background:var(--amber)">7</div><div><div class="pb-title" style="color:var(--amber)">Tupper almuerzo (noches de dias dobles)</div><div class="pb-step">Noche Jue 11: tupper para Vie 12 (30 min entre danes y trabajo). Noche Lun 15: tupper para Mar 16 (idem). Noche Jue 18: tupper para Vie 19.</div></div></div>
-    </div>
+    <div id="meal-ideas-list"></div>
   </div>
 </div>
 
@@ -555,6 +451,7 @@ html,body{height:100%;font-family:"Nunito",sans-serif;background:var(--cream);co
   <div class="tabs">
     <button class="tb on" data-fn="showET" data-arg="hab">Habitos</button>
     <button class="tb" data-fn="showET" data-arg="sup">Suplementos</button>
+    <button class="tb" data-fn="showET" data-arg="ing">Ingredientes</button>
     <button class="tb" data-fn="showET" data-arg="eqv">Equiv.</button>
     <button class="tb" data-fn="showET" data-arg="com">Compras</button>
     <button class="tb" data-fn="showET" data-arg="logros">Logros 🏅</button>
@@ -594,6 +491,17 @@ html,body{height:100%;font-family:"Nunito",sans-serif;background:var(--cream);co
       <div class="sr"><div class="si" style="background:var(--sage-l)">🦠</div><div><div class="sn2">Probioticos</div><div class="sd">1 vez/dia, con o sin comida.</div><div style="margin-top:5px"><span class="badge bs">1 vez por dia</span></div></div></div>
       <div class="sr"><div class="si" style="background:var(--coral-l)">⚡</div><div><div class="sn2">Creatina</div><div class="sd">3g si menos de 55kg, 5g si mas. Monohidrato Creapure.</div><div style="margin-top:5px"><span class="badge" style="background:var(--coral-l);color:var(--coral)">cualquier momento</span></div></div></div>
     </div>
+  </div>
+
+  <div id="ing" style="display:none">
+    <div class="card"><div class="ct">🥚 Huevos</div><div class="row"><span class="rl">Límite</span><span class="rv">2 por día, variá entre comidas</span></div></div>
+    <div class="card"><div class="ct">🧀 Queso</div><div class="row"><span class="rl">Frecuencia</span><span class="rv">No en todas las comidas del día</span></div><div class="row"><span class="rl">Queso blanco</span><span class="rv">1 cda/día</span></div><div class="row"><span class="rl">Feteado</span><span class="rv">Máx 2 fetas/día</span></div><div class="row"><span class="rl">Port salut / ricota / feta</span><span class="rv">~20g/día</span></div></div>
+    <div class="card"><div class="ct">🥩 Fiambres y enlatados</div><div class="row"><span class="rl">Frecuencia</span><span class="rv">Solo en UNA de las 4 comidas · NO todos los días</span></div><div class="row"><span class="rl">Jamón</span><span class="rv">Máx 2 fetas</span></div><div class="row"><span class="rl">Atún / sardinas</span><span class="rv">Solo una comida del día</span></div></div>
+    <div class="card"><div class="ct">🥑 Palta</div><div class="row"><span class="rl">Porción</span><span class="rv">½ palta</span></div><div class="row"><span class="rl">Frecuencia</span><span class="rv">Día por medio</span></div></div>
+    <div class="card"><div class="ct">🍎 Frutas</div><div class="row"><span class="rl">Cuándo</span><span class="rv">Solo desayuno y merienda</span></div><div class="row"><span class="rl">Porción</span><span class="rv">Manzana mediana · ½ banana · taza de berries</span></div><div class="row"><span class="rl">Límite</span><span class="rv">Máx 2 veces al día</span></div></div>
+    <div class="card"><div class="ct">🌰 Frutos secos</div><div class="row"><span class="rl">Porción</span><span class="rv">Un puño cerrado</span></div><div class="row"><span class="rl">Harina de frutos secos</span><span class="rv">1 cda/día</span></div><div class="row"><span class="rl">Harina de semillas</span><span class="rv">2 cdas/día</span></div></div>
+    <div class="card"><div class="ct">🎃 Zapallo</div><div class="row"><span class="rl">Frecuencia</span><span class="rv">No más de 3 veces/semana</span></div></div>
+    <div class="card"><div class="ct">🐟 Pescado y mariscos</div><div class="row"><span class="rl">Objetivo</span><span class="rv">Mínimo 2–3 veces por semana</span></div><div class="row"><span class="rl">Incluye</span><span class="rv">Salmón, merluza, trucha, camarones, mejillones, sardinas</span></div></div>
   </div>
 
   <div id="eqv" style="display:none">
@@ -742,13 +650,224 @@ document.addEventListener("click",function(e){
   else map[fn]();
 });
 
+// MEAL META
+var MEAL_META={
+  D:{icon:'🌅',name:'Desayuno',hint:'Proteína + grasa · sin vegetales',color:'var(--sage-d)',bg:'var(--sage-l)'},
+  A:{icon:'☀️',name:'Almuerzo',hint:'Proteína + vegetales + grasa',color:'var(--blue)',bg:'var(--blue-l)'},
+  M:{icon:'🍎',name:'Merienda',hint:'Proteína + fruta o grasa · liviana',color:'var(--amber)',bg:'var(--amber-l)'},
+  C:{icon:'🌙',name:'Cena',hint:'Proteína + vegetales + grasa',color:'var(--purple)',bg:'var(--purple-l)'}
+};
+var MEAL_IDEAS={
+  D:[
+    {n:'Huevos revueltos + tomates cherry + palta',d:'Proteína + grasa'},
+    {n:'Tortilla + queso feta + cebolla en ghee',d:'Proteína + grasa'},
+    {n:'Pudding de chía + berries',d:'Preparar la noche anterior · proteína + grasa'},
+    {n:'Omelette + queso Philadelphia + hongos',d:'Proteína + grasa'},
+    {n:'Skyr natural + almendras + frutos del bosque',d:'~200g skyr · proteína + grasa'},
+    {n:'Pancake de almendras + berries',d:'2 huevos + 3 cdas harina almendras + canela + stevia'}
+  ],
+  A:[
+    {n:'Pollo a la plancha + ensalada grande',d:'Pechuga con ghee + lechuga, tomate, pepino, zanahoria + aceite oliva'},
+    {n:'Salmón al horno + brócoli',d:'Proteína + vegetal · horno 200° 15 min'},
+    {n:'Carne vacuna + wok de vegetales',d:'Bife o picada + morrón, cebolla, zucchini en ghee'},
+    {n:'Camarones al ajillo + espinaca salteada',d:'Ghee + ajo + limón'},
+    {n:'Lentejas + zanahoria + cebolla',d:'Con aceite de oliva al final'},
+    {n:'Cerdo a la plancha + ensalada de rúcula',d:'Con aceite oliva + vinagre de manzana'},
+    {n:'Tortilla de atún + vegetales',d:'2 huevos + atún + zanahoria rallada + ghee'},
+    {n:'Pollo + zapallo asado + brócoli',d:'Max 3 veces/semana el zapallo'},
+    {n:'Garbanzos + espinaca + huevo pochado',d:'Proteína vegetal completa'},
+    {n:'Merluza al vapor + ensalada',d:'Suma al objetivo de pescado semanal'}
+  ],
+  M:[
+    {n:'Skyr + berries + semillas',d:'~200g skyr + frutos del bosque + chía'},
+    {n:'Huevo duro + frutillas',d:'Rápido, sin cocinar casi'},
+    {n:'Almendras + manzana',d:'Puño de almendras + manzana mediana'},
+    {n:'Jamón + pepino + nueces',d:'Solo si no usaste fiambre en otra comida hoy'}
+  ],
+  C:[
+    {n:'Pollo al horno + brócoli + palta',d:'Fácil y completo'},
+    {n:'Salmón + espinaca salteada',d:'Suma al objetivo semanal de pescado'},
+    {n:'Carne picada + zoodles (zucchini)',d:'Bolognesa rápida sin pasta'},
+    {n:'Camarones + wok de vegetales',d:'Con ghee, ajo, jengibre'},
+    {n:'Huevos + hongos + espinaca',d:'Solo si no llegaste a 2 huevos hoy'},
+    {n:'Cerdo + morrón + cebolla',d:'A la plancha o al horno'},
+    {n:'Merluza + ensalada grande',d:'Liviano y suma a objetivo de pescado'},
+    {n:'Lentejas + vegetales salteados',d:'Con aceite de oliva'}
+  ]
+};
+var coachMeal=null;
+var coachSel={prot:[],veg:[],fat:[]};
+var COACH_CHIPS={
+  prot:{
+    D:['Huevos','Skyr','Jamón','Queso feta','Queso Philadelphia','Atún','Pollo','Salmón'],
+    A:['Pollo','Carne vacuna','Camarones','Atún','Garbanzos','Lentejas','Cerdo','Salmón','Huevos'],
+    M:['Skyr','Jamón','Huevos','Queso feta'],
+    C:['Pollo','Carne vacuna','Camarones','Garbanzos','Lentejas','Cerdo','Salmón','Huevos']
+  },
+  veg:['Brócoli','Hongos','Espinaca','Tomates cherry','Zucchini','Zanahoria','Lechuga','Cebolla','Morrón','Pepino','Wok vegs','Rúcula','Acelga'],
+  fat:{
+    D:['Palta','Ghee','Aceite oliva','Almendras','Nueces','Chía','Semillas zapallo'],
+    A:['Ghee','Aceite oliva','Palta','Nueces','Almendras','Leche de coco'],
+    M:['Almendras','Nueces','Chía','Semillas zapallo','Palta','Aceite oliva'],
+    C:['Ghee','Aceite oliva','Palta','Nueces','Leche de coco']
+  }
+};
+var CHIP_LIMITS={
+  'Huevos':{key:'eggs',warn:1,limit:2,warnMsg:'Ya usaste huevos hoy — límite 2/día',limitMsg:'Límite de 2 huevos/día alcanzado — elegí otra proteína'},
+  'Jamón':{key:'fiambre',warn:0,limit:1,warnMsg:'',limitMsg:'El jamón ya lo usaste hoy — solo en UNA comida/día'},
+  'Atún':{key:'canned',warn:0,limit:1,warnMsg:'',limitMsg:'El atún ya lo usaste hoy — solo en UNA comida/día'},
+  'Queso feta':{key:'cheese',warn:0,limit:1,warnMsg:'',limitMsg:'Ya usaste queso hoy — no en todas las comidas'},
+  'Queso Philadelphia':{key:'cheese',warn:0,limit:1,warnMsg:'',limitMsg:'Ya usaste queso hoy — no en todas las comidas'},
+  'Palta':{key:'palta',warn:0,limit:1,warnMsg:'',limitMsg:'Ya usaste palta hoy — porción ½/día'}
+};
+function getDailyStats(){
+  var today=tday();
+  var tod=ents.filter(function(e){return e.date===today;});
+  var txt=' '+tod.map(function(e){return e.what.toLowerCase();}).join(' ')+' ';
+  var eggs=tod.filter(function(e){var w=e.what.toLowerCase();return ['huevo','omelette','tortilla','revuelto','clara'].some(function(k){return w.indexOf(k)!==-1;});}).length;
+  var cheese=['queso','feta','philadelphia','ricota','cottage','burrata','mozzarella'].some(function(k){return txt.indexOf(k)!==-1;});
+  var fiambre=['jamon','jamón','lomito','pastron','pastrón'].some(function(k){return txt.indexOf(k)!==-1;});
+  var canned=['atun','atún','sardina','caballa','jurel'].some(function(k){return txt.indexOf(k)!==-1;});
+  var palta=txt.indexOf('palta')!==-1;
+  var fruitKws=['berr','frutilla','manzana','naranja','pera','durazno','kiwi','banana','mandarina','uva','mango','frambuesa','arandano','cereza'];
+  var fruit=tod.filter(function(e){var w=e.what.toLowerCase();return fruitKws.some(function(k){return w.indexOf(k)!==-1;});}).length;
+  var now=new Date();
+  var fishKws=['salmon','salmón','atun','atún','sardina','caballa','trucha','merluza','lenguado','camarones','langostino','mejillon'];
+  var fish=ents.filter(function(e){var d=new Date(e.date);if((now-d)>7*86400000)return false;var w=e.what.toLowerCase();return fishKws.some(function(k){return w.indexOf(k)!==-1;});}).map(function(e){return e.date;}).filter(function(v,i,a){return a.indexOf(v)===i;}).length;
+  return {eggs:eggs,cheese:cheese,fiambre:fiambre,canned:canned,palta:palta,fruit:fruit,fish:fish};
+}
+function renderDailyTracker(){
+  var el=document.getElementById('daily-tracker');
+  if(!el) return;
+  var s=getDailyStats();
+  function row(icon,lbl,status,detail){
+    var dot={ok:'🟢',warn:'🟡',limit:'🔴'}[status];
+    return '<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border-s)"><span style="font-size:15px">'+icon+'</span><span style="font-size:12px;flex:1">'+lbl+'</span><span style="font-size:11px;color:var(--ink-m)">'+detail+'</span><span>'+dot+'</span></div>';
+  }
+  el.innerHTML=row('🥚','Huevos',s.eggs>=2?'limit':s.eggs===1?'warn':'ok',s.eggs+'/2 hoy')+row('🧀','Queso',s.cheese?'warn':'ok',s.cheese?'usado hoy':'disponible')+row('🥫','Fiambre/enlatado',(s.fiambre||s.canned)?'limit':'ok',(s.fiambre||s.canned)?'ya usado hoy':'disponible')+row('🥑','Palta',s.palta?'warn':'ok',s.palta?'½ usada hoy':'disponible')+row('🍎','Fruta',s.fruit>=2?'limit':s.fruit===1?'warn':'ok',s.fruit+'/2 hoy')+row('🐟','Pescado semanal',s.fish>=2?'ok':s.fish===1?'warn':'limit',s.fish+'/2 esta semana');
+}
+function setCoachMeal(meal){
+  coachMeal=meal;
+  coachSel={prot:[],veg:[],fat:[]};
+  ['D','A','M','C'].forEach(function(m){var btn=document.getElementById('csel-'+m);if(!btn)return;if(m===meal){btn.style.background=MEAL_META[m].bg;btn.style.borderColor=MEAL_META[m].color;}else{btn.style.background='white';btn.style.borderColor='var(--border)';}});
+  document.getElementById('coach-content').style.display='block';
+  ['prot','veg','fat'].forEach(function(c){var ex=document.getElementById('coach-extra-'+c);if(ex)ex.value='';});
+  var noteEl=document.getElementById('coach-note');if(noteEl)noteEl.value='';
+  var vegSec=document.getElementById('coach-veg-sec');if(vegSec)vegSec.style.display=(meal==='A'||meal==='C')?'block':'none';
+  var tipProt=document.getElementById('coach-tip-prot');
+  if(tipProt)tipProt.textContent=meal==='D'||meal==='M'?'Huevos (máx 2/día), skyr (~200g), jamón (máx 2 fetas, solo una comida/día), queso (no en todas las comidas).':'Carne, pollo, cerdo o pescado (¼ del plato ≈ 150g). Legumbres como alternativa.';
+  var tipFat=document.getElementById('coach-tip-fat');
+  if(tipFat)tipFat.textContent=meal==='A'||meal==='C'?'Ghee o aceite de coco para cocinar. Aceite de oliva para aderezar. Palta: ½/día.':'Almendras o nueces (un puño cerrado). Chía o semillas. Palta (½/día).';
+  renderCoachChips();updateCoachPreview();
+}
+function renderCoachChips(){
+  if(!coachMeal)return;
+  var stats=getDailyStats();
+  ['prot','veg','fat'].forEach(function(cat){
+    var el=document.getElementById('coach-chips-'+cat);if(!el)return;
+    var items=cat==='veg'?COACH_CHIPS.veg:(COACH_CHIPS[cat][coachMeal]||[]);
+    el.innerHTML='';
+    items.forEach(function(item){
+      var btn=document.createElement('button');btn.className='sug';btn.textContent=item;
+      var sel=coachSel[cat].indexOf(item)!==-1;if(sel)btn.classList.add('on');
+      var lim=CHIP_LIMITS[item];var chipStatus='ok';
+      if(lim&&!sel){var val=stats[lim.key];var count=typeof val==='boolean'?(val?1:0):val;if(count>=lim.limit)chipStatus='limit';else if(count>lim.warn)chipStatus='warn';if(chipStatus==='warn')btn.classList.add('chip-warn');if(chipStatus==='limit')btn.classList.add('chip-limit');}
+      btn.onclick=function(){toggleCoachChip(cat,item,lim,chipStatus);};
+      el.appendChild(btn);
+    });
+  });
+}
+function toggleCoachChip(cat,item,lim,chipStatus){
+  var idx=coachSel[cat].indexOf(item);
+  if(idx===-1){coachSel[cat].push(item);if(lim&&(chipStatus==='warn'||chipStatus==='limit')){var msg=chipStatus==='limit'?lim.limitMsg:lim.warnMsg;if(msg)showCoachAlert(msg);}}
+  else{coachSel[cat].splice(idx,1);clearCoachAlert();}
+  renderCoachChips();updateCoachPreview();
+}
+function showCoachAlert(msg){var el=document.getElementById('coach-alerts');if(el)el.innerHTML='<div style="font-size:11px;color:var(--amber);margin-top:6px;padding:6px 8px;background:var(--amber-l);border-radius:6px">⚠️ '+msg+'</div>';}
+function clearCoachAlert(){var el=document.getElementById('coach-alerts');if(el)el.innerHTML='';}
+function updateCoachPreview(){
+  var parts=coachSel.prot.concat(coachSel.veg).concat(coachSel.fat);
+  ['prot','veg','fat'].forEach(function(cat){var ex=document.getElementById('coach-extra-'+cat);if(ex&&ex.value.trim())parts.push(ex.value.trim());});
+  var preview=document.getElementById('coach-preview');var text=document.getElementById('coach-preview-text');
+  if(!preview||!text)return;
+  if(parts.length===0){preview.style.display='none';return;}
+  preview.style.display='block';text.textContent=parts.join(' + ');
+}
+function saveFromCoach(){
+  var ok=document.getElementById('coach-ok');
+  if(!coachMeal){if(ok)ok.textContent='Elegí el tipo de comida primero';return;}
+  var date=document.getElementById('coach-date').value;var time=document.getElementById('coach-time').value;
+  if(!date||!time){if(ok)ok.textContent='Completá fecha y hora';return;}
+  var parts=coachSel.prot.concat(coachSel.veg).concat(coachSel.fat);
+  ['prot','veg','fat'].forEach(function(cat){var ex=document.getElementById('coach-extra-'+cat);if(ex&&ex.value.trim())parts.push(ex.value.trim());});
+  if(parts.length===0){if(ok)ok.textContent='Agregá al menos un ingrediente';return;}
+  var what=parts.join(' + ');var note=document.getElementById('coach-note').value.trim();var savedMeal=coachMeal;
+  ents.push({id:Date.now(),date:date,time:time,type:savedMeal,what:what,note:note});
+  ents.sort(function(a,b){return a.date===b.date?a.time.localeCompare(b.time):a.date.localeCompare(b.date);});
+  sv();
+  coachSel={prot:[],veg:[],fat:[]};coachMeal=null;
+  ['prot','veg','fat'].forEach(function(cat){var ex=document.getElementById('coach-extra-'+cat);if(ex)ex.value='';});
+  var noteEl=document.getElementById('coach-note');if(noteEl)noteEl.value='';
+  ['D','A','M','C'].forEach(function(m){var btn=document.getElementById('csel-'+m);if(btn){btn.style.background='white';btn.style.borderColor='var(--border)';}});
+  document.getElementById('coach-content').style.display='none';
+  updateCoachPreview();
+  var now=new Date();document.getElementById('coach-time').value=String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
+  checkAllBadges();rToday();renderDailyTracker();
+  var card=document.getElementById('add-card');if(card){card.classList.add('flash');setTimeout(function(){card.classList.remove('flash');},600);}
+  if(ok){ok.textContent='¡Guardado! ✓';setTimeout(function(){ok.textContent='';},2500);}
+  setTimeout(function(){showRegToast(what,savedMeal);},400);
+}
+function usarIdeaIdx(meal,idx){
+  var ideas=MEAL_IDEAS[meal]||[];
+  var idea=ideas[idx];
+  if(idea) usarIdea(meal,idea.n);
+}
+function usarIdea(meal,text){
+  var regNav=document.querySelector('.ni[data-arg="reg"]');if(regNav)showS(regNav,'reg');
+  var rrTab=document.querySelector('[data-fn="showRT"][data-arg="rr"]');if(rrTab)showRT(rrTab,'rr');
+  setCoachMeal(meal);
+  var ep=document.getElementById('coach-extra-prot');if(ep)ep.value=text;
+  updateCoachPreview();
+  document.getElementById('add-card').scrollIntoView({behavior:'smooth'});
+}
+var activePlanTab='D';
+function showMealIdeas(el,meal){
+  activePlanTab=meal;
+  document.querySelectorAll('#plan-tabs .plan-tab').forEach(function(b){b.classList.remove('on');});
+  el.classList.add('on');
+  var list=document.getElementById('meal-ideas-list');if(!list)return;
+  var ideas=MEAL_IDEAS[meal]||[];var m=MEAL_META[meal];
+  list.innerHTML=ideas.map(function(idea,idx){
+    return '<div class="idea-card"><div style="font-size:22px;width:36px;text-align:center;flex-shrink:0">'+m.icon+'</div><div class="idea-name" style="flex:1"><div>'+idea.n+'</div><div class="idea-desc">'+idea.d+'</div></div><button class="idea-use" style="background:'+m.bg+';color:'+m.color+'" onclick="usarIdeaIdx(\''+meal+'\','+idx+')" >Usar →</button></div>';
+  }).join('');
+}
+function hideRegToast(){document.getElementById('reg-toast').classList.remove('show');}
+function showRegToast(what,meal){
+  var w=' '+what.toLowerCase()+' ';var stats=getDailyStats();var msgs=[];
+  var hasEgg=['huevo','omelette','tortilla','revuelto','clara'].some(function(k){return w.indexOf(k)!==-1;});
+  if(hasEgg){if(stats.eggs>=2)msgs.push('🥚 Llegaste a 2 huevos hoy — es el límite diario. Para la próxima elegí otra proteína.');else msgs.push('🥚 Huevos en esta comida ('+stats.eggs+'/2 hoy). Podés usarlos una vez más hoy.');}
+  if(['jamon','jamón','lomito'].some(function(k){return w.indexOf(k)!==-1;}))msgs.push('🥩 Los fiambres van en una sola comida del día — no lo repitas hoy.');
+  if(['atun','atún','sardina'].some(function(k){return w.indexOf(k)!==-1;}))msgs.push('🥫 El atún (enlatado) va en una sola comida del día — ya lo contás hoy.');
+  if(['queso','feta','philadelphia','ricota'].some(function(k){return w.indexOf(k)!==-1;}))msgs.push('🧀 Queso: una vez por día (~20g). Evitalo en las otras comidas de hoy.');
+  if(w.indexOf('palta')!==-1)msgs.push('🥑 Palta: porción ½ por día. Ya la usaste — la otra mitad para mañana.');
+  var fruitKws=['berr','frutilla','manzana','naranja','pera','durazno','kiwi','banana','mandarina','uva','mango','frambuesa','arandano'];
+  var hasFruit=fruitKws.some(function(k){return w.indexOf(k)!==-1;});
+  if(hasFruit){if(stats.fruit>=2)msgs.push('🍎 Ya van '+stats.fruit+' frutas hoy — suficiente. La fruta va solo en D y M.');else if(meal!=='D'&&meal!=='M')msgs.push('🍎 La fruta va mejor en desayuno o merienda.');}
+  var fishKws=['salmon','salmón','trucha','merluza','lenguado','camarones','langostino','mejillon'];
+  var hasFish=fishKws.some(function(k){return w.indexOf(k)!==-1;});
+  if(hasFish){var fd=stats.fish;if(fd>=2)msgs.push('🐟 ¡Cumpliste el objetivo de pescado esta semana! ('+fd+'/2-3 días)');else msgs.push('🐟 Suma para tu objetivo semanal de pescado ('+fd+'/2-3 días esta semana).');}
+  if(w.indexOf('zapallo')!==-1)msgs.push('🎃 Zapallo: no más de 3 veces por semana.');
+  if(msgs.length===0)return;
+  document.getElementById('toast-body').innerHTML=msgs.map(function(m){return '<div class="toast-item">'+m+'</div>';}).join('');
+  document.getElementById('reg-toast').classList.add('show');
+}
 function showS(el,id){
   document.querySelectorAll(".sc").forEach(function(s){s.classList.remove("on");});
   document.querySelectorAll(".ni").forEach(function(n){n.classList.remove("on");});
   document.getElementById("sc-"+id).classList.add("on");
   if(id==="calma") initCalma();
   el.classList.add("on");
-  if(id==="reg"){rToday();rExL();rW();}
+  if(id==="reg"){rToday();rExL();rW();renderDailyTracker();}
   window.scrollTo(0,0);
 }
 
@@ -758,6 +877,7 @@ function showRT(el,id){
   });
   document.querySelectorAll("#sc-reg .tb").forEach(function(b){b.classList.remove("on");});
   el.classList.add("on");
+  if(id==="rr") renderDailyTracker();
   if(id==="ragua") rW();
   if(id==="rex") rExL();
   if(id==="rh"){document.getElementById("hd").value=tday();renderHD();}
@@ -793,7 +913,7 @@ function showWeek(el,w){
 }
 
 function showET(el,id){
-  ["hab","sup","eqv","com","logros","datos"].forEach(function(t){var e=document.getElementById(t);if(e)e.style.display=(t===id)?"block":"none";});
+  ["hab","sup","ing","eqv","com","logros","datos"].forEach(function(t){var e=document.getElementById(t);if(e)e.style.display=(t===id)?"block":"none";});
   document.querySelectorAll("#sc-ext .tb").forEach(function(b){b.classList.remove("on");});
   el.classList.add("on");
   if(id==="com") rShopList();
@@ -1819,13 +1939,21 @@ function showCW(el,w){
 // Init
 var now=new Date();
 var t=tday();
-document.getElementById("id").value=t;
-document.getElementById("it").value=String(now.getHours()).padStart(2,"0")+":"+String(now.getMinutes()).padStart(2,"0");
+document.getElementById("coach-date").value=t;
+document.getElementById("coach-time").value=String(now.getHours()).padStart(2,"0")+":"+String(now.getMinutes()).padStart(2,"0");
 document.getElementById("exd").value=t;
 document.getElementById("hd").value=t;
 setHdrDate();
 document.getElementById("pd").value=tday();
 rToday();rW();rExL();rPesoList();rShopList();initCalma();
+renderDailyTracker();
+var firstPlanTab=document.querySelector('.plan-tab');
+if(firstPlanTab) showMealIdeas(firstPlanTab,'D');
 </script>
+<div id="reg-toast">
+  <span class="toast-close" onclick="hideRegToast()">×</span>
+  <div class="toast-title">📝 Registrado — algunos puntos</div>
+  <div id="toast-body"></div>
+</div>
 </body>
 </html>
