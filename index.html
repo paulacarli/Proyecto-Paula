@@ -697,18 +697,19 @@ var MEAL_IDEAS={
 };
 var coachMeal=null;
 var coachSel={prot:[],veg:[],fat:[]};
+var coachQty={};
 var COACH_CHIPS={
   prot:{
-    D:['Huevos','Skyr','Jamón','Queso feta','Queso Philadelphia','Atún','Pollo','Salmón'],
+    D:['Huevos','Skyr','Jamón','Queso','Queso Philadelphia','Atún','Pollo','Salmón'],
     A:['Pollo','Carne vacuna','Camarones','Atún','Garbanzos','Lentejas','Cerdo','Salmón','Huevos'],
-    M:['Skyr','Jamón','Huevos','Queso feta'],
+    M:['Skyr','Jamón','Huevos','Queso'],
     C:['Pollo','Carne vacuna','Camarones','Garbanzos','Lentejas','Cerdo','Salmón','Huevos']
   },
   veg:['Brócoli','Hongos','Espinaca','Tomates cherry','Zucchini','Zanahoria','Lechuga','Cebolla','Morrón','Pepino','Wok vegs','Rúcula','Acelga'],
   fat:{
-    D:['Palta','Ghee','Aceite oliva','Almendras','Nueces','Chía','Semillas zapallo'],
+    D:['Palta','Ghee','Aceite oliva','Almendras','Nueces','Chía','Semillas zapallo','Fruta'],
     A:['Ghee','Aceite oliva','Palta','Nueces','Almendras','Leche de coco'],
-    M:['Almendras','Nueces','Chía','Semillas zapallo','Palta','Aceite oliva'],
+    M:['Almendras','Nueces','Chía','Semillas zapallo','Palta','Aceite oliva','Fruta'],
     C:['Ghee','Aceite oliva','Palta','Nueces','Leche de coco']
   }
 };
@@ -716,7 +717,7 @@ var CHIP_LIMITS={
   'Huevos':{key:'eggs',warn:1,limit:2,warnMsg:'Ya usaste huevos hoy — límite 2/día',limitMsg:'Límite de 2 huevos/día alcanzado — elegí otra proteína'},
   'Jamón':{key:'fiambre',warn:0,limit:1,warnMsg:'',limitMsg:'El jamón ya lo usaste hoy — solo en UNA comida/día'},
   'Atún':{key:'canned',warn:0,limit:1,warnMsg:'',limitMsg:'El atún ya lo usaste hoy — solo en UNA comida/día'},
-  'Queso feta':{key:'cheese',warn:0,limit:1,warnMsg:'',limitMsg:'Ya usaste queso hoy — no en todas las comidas'},
+  'Queso':{key:'cheese',warn:0,limit:1,warnMsg:'',limitMsg:'Ya usaste queso hoy — no en todas las comidas'},
   'Queso Philadelphia':{key:'cheese',warn:0,limit:1,warnMsg:'',limitMsg:'Ya usaste queso hoy — no en todas las comidas'},
   'Palta':{key:'palta',warn:0,limit:1,warnMsg:'',limitMsg:'Ya usaste palta hoy — porción ½/día'}
 };
@@ -748,7 +749,7 @@ function renderDailyTracker(){
 }
 function setCoachMeal(meal){
   coachMeal=meal;
-  coachSel={prot:[],veg:[],fat:[]};
+  coachSel={prot:[],veg:[],fat:[]};coachQty={};
   ['D','A','M','C'].forEach(function(m){var btn=document.getElementById('csel-'+m);if(!btn)return;if(m===meal){btn.style.background=MEAL_META[m].bg;btn.style.borderColor=MEAL_META[m].color;}else{btn.style.background='white';btn.style.borderColor='var(--border)';}});
   document.getElementById('coach-content').style.display='block';
   ['prot','veg','fat'].forEach(function(c){var ex=document.getElementById('coach-extra-'+c);if(ex)ex.value='';});
@@ -768,7 +769,9 @@ function renderCoachChips(){
     var items=cat==='veg'?COACH_CHIPS.veg:(COACH_CHIPS[cat][coachMeal]||[]);
     el.innerHTML='';
     items.forEach(function(item){
-      var btn=document.createElement('button');btn.className='sug';btn.textContent=item;
+      var btn=document.createElement('button');btn.className='sug';
+      var qty=coachQty[item]||0;
+      btn.textContent=(item==='Huevos'&&qty===2)?'Huevos ×2':item;
       var sel=coachSel[cat].indexOf(item)!==-1;if(sel)btn.classList.add('on');
       var lim=CHIP_LIMITS[item];var chipStatus='ok';
       if(lim&&!sel){var val=stats[lim.key];var count=typeof val==='boolean'?(val?1:0):val;if(count>=lim.limit)chipStatus='limit';else if(count>lim.warn)chipStatus='warn';if(chipStatus==='warn')btn.classList.add('chip-warn');if(chipStatus==='limit')btn.classList.add('chip-limit');}
@@ -778,15 +781,22 @@ function renderCoachChips(){
   });
 }
 function toggleCoachChip(cat,item,lim,chipStatus){
-  var idx=coachSel[cat].indexOf(item);
-  if(idx===-1){coachSel[cat].push(item);if(lim&&(chipStatus==='warn'||chipStatus==='limit')){var msg=chipStatus==='limit'?lim.limitMsg:lim.warnMsg;if(msg)showCoachAlert(msg);}}
-  else{coachSel[cat].splice(idx,1);clearCoachAlert();}
+  if(item==='Huevos'){
+    var curQty=coachQty['Huevos']||0;
+    if(curQty===0){coachSel[cat].push(item);coachQty['Huevos']=1;if(lim&&(chipStatus==='warn'||chipStatus==='limit')){var msg=chipStatus==='limit'?lim.limitMsg:lim.warnMsg;if(msg)showCoachAlert(msg);}}
+    else if(curQty===1){coachQty['Huevos']=2;clearCoachAlert();}
+    else{var idx=coachSel[cat].indexOf(item);if(idx!==-1)coachSel[cat].splice(idx,1);delete coachQty['Huevos'];clearCoachAlert();}
+  } else {
+    var idx=coachSel[cat].indexOf(item);
+    if(idx===-1){coachSel[cat].push(item);if(lim&&(chipStatus==='warn'||chipStatus==='limit')){var msg=chipStatus==='limit'?lim.limitMsg:lim.warnMsg;if(msg)showCoachAlert(msg);}}
+    else{coachSel[cat].splice(idx,1);clearCoachAlert();}
+  }
   renderCoachChips();updateCoachPreview();
 }
 function showCoachAlert(msg){var el=document.getElementById('coach-alerts');if(el)el.innerHTML='<div style="font-size:11px;color:var(--amber);margin-top:6px;padding:6px 8px;background:var(--amber-l);border-radius:6px">⚠️ '+msg+'</div>';}
 function clearCoachAlert(){var el=document.getElementById('coach-alerts');if(el)el.innerHTML='';}
 function updateCoachPreview(){
-  var parts=coachSel.prot.concat(coachSel.veg).concat(coachSel.fat);
+  var parts=coachSel.prot.map(function(i){return(i==='Huevos'&&coachQty['Huevos']===2)?'2 Huevos':i;}).concat(coachSel.veg).concat(coachSel.fat);
   ['prot','veg','fat'].forEach(function(cat){var ex=document.getElementById('coach-extra-'+cat);if(ex&&ex.value.trim())parts.push(ex.value.trim());});
   var preview=document.getElementById('coach-preview');var text=document.getElementById('coach-preview-text');
   if(!preview||!text)return;
@@ -798,14 +808,14 @@ function saveFromCoach(){
   if(!coachMeal){if(ok)ok.textContent='Elegí el tipo de comida primero';return;}
   var date=document.getElementById('coach-date').value;var time=document.getElementById('coach-time').value;
   if(!date||!time){if(ok)ok.textContent='Completá fecha y hora';return;}
-  var parts=coachSel.prot.concat(coachSel.veg).concat(coachSel.fat);
+  var parts=coachSel.prot.map(function(i){return(i==='Huevos'&&coachQty['Huevos']===2)?'2 Huevos':i;}).concat(coachSel.veg).concat(coachSel.fat);
   ['prot','veg','fat'].forEach(function(cat){var ex=document.getElementById('coach-extra-'+cat);if(ex&&ex.value.trim())parts.push(ex.value.trim());});
   if(parts.length===0){if(ok)ok.textContent='Agregá al menos un ingrediente';return;}
   var what=parts.join(' + ');var note=document.getElementById('coach-note').value.trim();var savedMeal=coachMeal;
   ents.push({id:Date.now(),date:date,time:time,type:savedMeal,what:what,note:note});
   ents.sort(function(a,b){return a.date===b.date?a.time.localeCompare(b.time):a.date.localeCompare(b.date);});
   sv();
-  coachSel={prot:[],veg:[],fat:[]};coachMeal=null;
+  coachSel={prot:[],veg:[],fat:[]};coachQty={};coachMeal=null;
   ['prot','veg','fat'].forEach(function(cat){var ex=document.getElementById('coach-extra-'+cat);if(ex)ex.value='';});
   var noteEl=document.getElementById('coach-note');if(noteEl)noteEl.value='';
   ['D','A','M','C'].forEach(function(m){var btn=document.getElementById('csel-'+m);if(btn){btn.style.background='white';btn.style.borderColor='var(--border)';}});
