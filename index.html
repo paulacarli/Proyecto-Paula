@@ -2232,20 +2232,7 @@ function rRoutinesList(){
     catBadge.style.color=col;
     catBadge.textContent=r.cat;
 
-    var editBtn = document.createElement("button");
-    editBtn.textContent="✏️";
-    editBtn.title="Edit";
-    editBtn.style.cssText="background:#2A2A2A;border:none;border-radius:8px;width:26px;height:26px;cursor:pointer;font-size:13px";
-    (function(rid){ editBtn.addEventListener("click",function(){ openEditRoutine(rid); }); })(r.id);
-
-    var delBtn = document.createElement("button");
-    delBtn.textContent="x";
-    delBtn.style.cssText="background:#2A2A2A;border:none;color:#707068;border-radius:8px;width:26px;height:26px;cursor:pointer;font-size:14px";
-    (function(rid){ delBtn.addEventListener("click",function(){ delRoutine(rid); }); })(r.id);
-
     right.appendChild(catBadge);
-    right.appendChild(editBtn);
-    right.appendChild(delBtn);
     hdr.appendChild(title);
     hdr.appendChild(right);
     card.appendChild(hdr);
@@ -2282,6 +2269,24 @@ function rRoutinesList(){
     lastDiv.style.cssText="font-size:11px;color:var(--ink-m);margin-top:8px;border-top:1px solid rgba(255,255,255,0.05);padding-top:8px";
     lastDiv.textContent=lastSes?"Last session: "+fmtDate(lastSes.date):"No sessions yet";
     card.appendChild(lastDiv);
+
+    // Action buttons — subtle, bottom right
+    var actRow = document.createElement("div");
+    actRow.style.cssText="display:flex;justify-content:flex-end;gap:10px;margin-top:10px;padding-top:8px;border-top:1px solid rgba(255,255,255,0.05)";
+
+    var editBtn = document.createElement("button");
+    editBtn.style.cssText="background:none;border:none;color:var(--ink-m);font-family:Nunito,sans-serif;font-size:12px;cursor:pointer;padding:0;display:flex;align-items:center;gap:4px";
+    editBtn.innerHTML="✏️ edit";
+    (function(rid){ editBtn.addEventListener("click",function(){ openEditRoutine(rid); }); })(r.id);
+
+    var delBtn = document.createElement("button");
+    delBtn.style.cssText="background:none;border:none;color:rgba(255,100,100,0.5);font-family:Nunito,sans-serif;font-size:12px;cursor:pointer;padding:0;display:flex;align-items:center;gap:4px";
+    delBtn.innerHTML="✕ delete";
+    (function(rid){ delBtn.addEventListener("click",function(){ delRoutine(rid); }); })(r.id);
+
+    actRow.appendChild(editBtn);
+    actRow.appendChild(delBtn);
+    card.appendChild(actRow);
     list.appendChild(card);
   });
 }
