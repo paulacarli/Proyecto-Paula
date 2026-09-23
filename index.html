@@ -2379,19 +2379,6 @@ function init(){
 }
 
 // Event delegation
-document.addEventListener("click", function(e){
-  var el = e.target.closest("[data-fn]");
-  if(!el) return;
-  var fn = el.getAttribute("data-fn");
-  var arg = el.getAttribute("data-arg");
-  var map={showS:showS,showRT:showRT,showET:showET,showGT:showGT,selT:selT,selEx:selEx,addW:addW,addE:addE,addEx:addEx,resetW:resetW,addWeight:addWeight,addShopItem:addShopItem,saveRoutine:saveRoutine,addSesion:addSesion,addExRow:addExRow,savePerformanceLog:savePerformanceLog,exportJSON:exportJSON,addSteps:addSteps,setSteps:setSteps,resetSteps:resetSteps};
-  if(!map[fn]) return;
-  if(fn==="addW") map[fn](parseInt(arg));
-  else if(fn==="addSteps"){ addSteps(null, arg); return; }
-  else if(arg) map[fn](el, arg);
-  else map[fn]();
-});
-
 window.addEventListener("load", init);
 
 function addEditExRow(){ var wrap=document.getElementById("edit-exercises-inputs"); if(wrap) makeExRow(wrap,null); }
