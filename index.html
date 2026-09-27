@@ -2439,26 +2439,32 @@ function openEditPerf(id){
   var rows = document.getElementById("edit-perf-rows");
   rows.innerHTML = "";
   (entry.performance||[]).forEach(function(p){
-    var row = document.createElement("div");
-    row.style.cssText = "display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:6px;margin-bottom:8px;align-items:center";
+    // one wrapper per exercise — saveEditPerf iterates these
+    var wrap = document.createElement("div");
+    wrap.style.cssText = "margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid #2A2A2A";
+    // name label
     var nm = document.createElement("div");
-    nm.style.cssText = "font-size:13px;color:#fff;font-weight:600;padding-top:8px";
+    nm.style.cssText = "font-size:13px;color:#fff;font-weight:600;margin-bottom:6px";
     nm.textContent = p.name;
-    row.appendChild(nm);
-    [{cls:"ep-sets",val:p.sets},{cls:"ep-reps",val:p.reps},{cls:"ep-weight",val:p.weight}].forEach(function(f){
+    wrap.appendChild(nm);
+    // sets / reps / weight grid
+    var grid = document.createElement("div");
+    grid.style.cssText = "display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:6px";
+    [{cls:"ep-sets",val:p.sets,ph:"Sets"},{cls:"ep-reps",val:p.reps,ph:"Reps"},{cls:"ep-weight",val:p.weight,ph:"Weight"}].forEach(function(f){
       var inp = document.createElement("input");
       inp.className = "fi "+f.cls; inp.style.cssText = "font-size:12px;padding:8px 6px";
-      inp.value = f.val||""; inp.placeholder = f.cls.replace("ep-","");
-      row.appendChild(inp);
+      inp.value = f.val||""; inp.placeholder = f.ph;
+      grid.appendChild(inp);
     });
+    wrap.appendChild(grid);
+    // notes field
     var notesInp = document.createElement("input");
     notesInp.type="text"; notesInp.className="fi ep-ex-notes";
-    notesInp.placeholder="Notes...";
-    notesInp.style.cssText="font-size:11px;padding:6px 10px;margin-bottom:4px;color:var(--ink-m);grid-column:1/-1";
+    notesInp.placeholder="Notes for this exercise...";
+    notesInp.style.cssText="font-size:11px;padding:6px 10px;width:100%;box-sizing:border-box";
     notesInp.value=p.notes||"";
-    var notesRow=document.createElement("div"); notesRow.style.cssText="margin-bottom:6px";
-    notesRow.appendChild(notesInp); rows.appendChild(notesRow);
-    rows.appendChild(row);
+    wrap.appendChild(notesInp);
+    rows.appendChild(wrap);
   });
   document.getElementById("edit-perf-fb").textContent="";
   document.getElementById("edit-perf-modal").style.display="block";
@@ -2477,16 +2483,15 @@ function saveEditPerf(){
   var fb = document.getElementById("edit-perf-fb");
   var idx = gymLog.findIndex(function(e){ return e.id===id; });
   if(idx===-1){ fb.textContent="Not found"; return; }
-  var rows = document.querySelectorAll("#edit-perf-rows > div");
+  var wrappers = document.querySelectorAll("#edit-perf-rows > div");
   gymLog[idx].notes = notes;
   gymLog[idx].duration = dur ? parseInt(dur) : null;
-  var perfIdx = 0;
-  gymLog[idx].performance.forEach(function(p){
-    var row = rows[perfIdx]; perfIdx++;
-    if(!row) return;
-    p.sets   = (row.querySelector(".ep-sets")||{}).value   || null;
-    p.reps   = (row.querySelector(".ep-reps")||{}).value   || null;
-    p.weight = (row.querySelector(".ep-weight")||{}).value || null;
+  gymLog[idx].performance.forEach(function(p, i){
+    var wrap = wrappers[i]; if(!wrap) return;
+    p.sets   = (wrap.querySelector(".ep-sets")||{value:null}).value   || null;
+    p.reps   = (wrap.querySelector(".ep-reps")||{value:null}).value   || null;
+    p.weight = (wrap.querySelector(".ep-weight")||{value:null}).value || null;
+    p.notes  = (wrap.querySelector(".ep-ex-notes")||{value:""}).value || null;
   });
   svGym();
   fb.textContent = "Saved!";
