@@ -717,6 +717,7 @@ html,body{height:100%;font-family:"Nunito",sans-serif;background:#0A0A0A;color:v
           <div style="font-size:10px;font-weight:700;color:var(--ink-m);text-transform:uppercase">Weight</div>
         </div>
         <div id="log-ex-rows"></div>
+        <button id="log-add-extra-btn" onclick="addLogExtraRow()" style="display:none;width:100%;padding:8px;border-radius:var(--r-sm);border:1.5px dashed var(--border);background:transparent;color:var(--sage);font-family:Nunito,sans-serif;font-size:13px;font-weight:600;cursor:pointer;margin-top:4px">+ Add extra exercise</button>
       </div>
       <div class="ff" style="margin-top:10px"><label class="fl">Notes</label>
         <input type="text" id="log-notes" class="fi" placeholder="e.g. felt strong, PR on squat...">
@@ -2268,6 +2269,7 @@ function openPerfTab(){
   // Reset form
   document.getElementById("log-exercises-wrap").style.display = "none";
   document.getElementById("log-ex-rows").innerHTML = "";
+  var extraBtn0 = document.getElementById("log-add-extra-btn"); if(extraBtn0) extraBtn0.style.display="none";
   var ld = document.getElementById("log-date");
   if(ld && !ld.value) ld.value = tday();
   var ls = document.getElementById("log-start");
@@ -2642,6 +2644,66 @@ function loadLogExercises(){
     rows.appendChild(row);
   });
   wrap.style.display = "block";
+  var extraBtn = document.getElementById("log-add-extra-btn");
+  if(extraBtn) extraBtn.style.display = "block";
+}
+
+function addLogExtraRow(){
+  var rows = document.getElementById("log-ex-rows");
+  if(!rows) return;
+  var row = document.createElement("div");
+  row.dataset.extra = "1";
+  row.style.cssText = "margin-bottom:12px;padding:10px;border-radius:10px;background:#1C1C1C;border:1px solid var(--border-s)";
+
+  var header = document.createElement("div");
+  header.style.cssText = "font-size:11px;font-weight:700;color:var(--sage);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center";
+  header.innerHTML = "<span>Extra exercise</span>";
+  var rmBtn = document.createElement("button");
+  rmBtn.textContent="×"; rmBtn.style.cssText="background:#2A2A2A;border:none;color:#707068;border-radius:6px;width:22px;height:22px;cursor:pointer;font-size:13px;line-height:1";
+  rmBtn.addEventListener("click",function(){ row.remove(); });
+  header.appendChild(rmBtn);
+  row.appendChild(header);
+
+  var nameInp = document.createElement("input");
+  nameInp.type="text"; nameInp.className="fi log-extra-name";
+  nameInp.placeholder="Exercise name"; nameInp.style.cssText="font-size:13px;padding:8px 10px;margin-bottom:6px;width:100%;box-sizing:border-box";
+  row.appendChild(nameInp);
+
+  // Grid or notes depending on name
+  var fieldsWrap = document.createElement("div");
+  fieldsWrap.className="log-extra-fields";
+  row.appendChild(fieldsWrap);
+
+  function renderExtraFields(){
+    var wc = isWarmCool(nameInp.value);
+    fieldsWrap.innerHTML="";
+    if(wc){
+      var notesInp=document.createElement("input");
+      notesInp.type="text"; notesInp.className="fi log-extra-notes";
+      notesInp.placeholder="What did you do?"; notesInp.style.cssText="font-size:12px;padding:8px 10px;width:100%;box-sizing:border-box";
+      fieldsWrap.appendChild(notesInp);
+    } else {
+      var grid=document.createElement("div");
+      grid.style.cssText="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px";
+      [{cls:"log-extra-sets",ph:"Sets",type:"number"},{cls:"log-extra-reps",ph:"Reps",type:"number"},{cls:"log-extra-weight",ph:"Body or kg",type:"text"}].forEach(function(f){
+        var inp=document.createElement("input");
+        inp.type=f.type; inp.className="fi "+f.cls;
+        inp.placeholder=f.ph; inp.style.cssText="font-size:12px;padding:8px 6px";
+        if(f.type==="number") inp.min="1";
+        grid.appendChild(inp);
+      });
+      var notesInp=document.createElement("input");
+      notesInp.type="text"; notesInp.className="fi log-extra-notes";
+      notesInp.placeholder="Notes (optional)"; notesInp.style.cssText="font-size:11px;padding:6px 10px;margin-top:6px;width:100%;box-sizing:border-box;color:var(--ink-m)";
+      fieldsWrap.appendChild(grid);
+      fieldsWrap.appendChild(notesInp);
+    }
+  }
+  renderExtraFields();
+  nameInp.addEventListener("change", renderExtraFields);
+
+  rows.appendChild(row);
+  nameInp.focus();
 }
 
 function savePerformanceLog(){
@@ -2653,7 +2715,8 @@ function savePerformanceLog(){
   if(!rid){ fb.textContent = "Select a routine"; return; }
   if(!date){ fb.textContent = "Select a date"; return; }
   var r = routines.find(function(r){ return r.id===rid; });
-  var exRows = document.querySelectorAll("#log-ex-rows > div");
+  // Routine exercises (non-extra rows, in order)
+  var exRows = Array.from(document.querySelectorAll("#log-ex-rows > div")).filter(function(d){ return !d.dataset.extra; });
   var perf = [];
   if(r){
     r.exercises.forEach(function(ex, i){
@@ -2673,6 +2736,23 @@ function savePerformanceLog(){
       }
     });
   }
+  // Extra exercises added on the fly
+  document.querySelectorAll("#log-ex-rows > div[data-extra='1']").forEach(function(row){
+    var name = (row.querySelector(".log-extra-name")||{value:""}).value.trim();
+    if(!name) return;
+    var wc = isWarmCool(name);
+    if(wc){
+      perf.push({ name:name, warmCool:true, extra:true,
+        notes:(row.querySelector(".log-extra-notes")||{value:""}).value||null });
+    } else {
+      perf.push({ name:name, extra:true,
+        sets:   (row.querySelector(".log-extra-sets")||{value:null}).value   || null,
+        reps:   (row.querySelector(".log-extra-reps")||{value:null}).value   || null,
+        weight: (row.querySelector(".log-extra-weight")||{value:null}).value || null,
+        notes:  (row.querySelector(".log-extra-notes")||{value:""}).value    || null
+      });
+    }
+  });
   var startTime = (document.getElementById("log-start")||{value:""}).value || null;
   var endTime   = (document.getElementById("log-end")||{value:""}).value || null;
   var entry = { id:Date.now(), routineId:rid, routineName:r?r.name:"",
@@ -2696,6 +2776,7 @@ function savePerformanceLog(){
   var le2 = document.getElementById("log-end");   if(le2) le2.value = "";
   document.getElementById("log-ex-rows").innerHTML = "";
   document.getElementById("log-exercises-wrap").style.display = "none";
+  var extraBtn2 = document.getElementById("log-add-extra-btn"); if(extraBtn2) extraBtn2.style.display="none";
   document.getElementById("log-routine").value = "";
   setTimeout(function(){ fb.textContent = ""; populateChartExSelect(); rPerfHistory(); }, 1200);
 }
@@ -2772,10 +2853,11 @@ function rPerfHistory(){
           var wDisp = p.weight
             ? (p.weight.toLowerCase()==="body" ? "🏋️ Body" : p.weight+" kg")
             : "—";
-          [p.name||"—", p.sets||"—", p.reps||"—", wDisp].forEach(function(v,vi){
+          var nameDisp = (p.name||"—") + (p.extra ? " ✦" : "");
+          [nameDisp, p.sets||"—", p.reps||"—", wDisp].forEach(function(v,vi){
             var td = tr.insertCell();
             td.style.cssText = "font-size:12px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.04);color:"
-              +(vi===3&&p.weight?"#4A90D9":vi===0?"#fff":"var(--ink-s)");
+              +(vi===3&&p.weight?"#4A90D9":vi===0?(p.extra?"#FF6B4A":"#fff"):"var(--ink-s)");
             td.textContent = v;
           });
         }
@@ -2845,6 +2927,57 @@ function closeEditPerfModal(){
   document.body.style.overflow="";
 }
 
+function addEditPerfExtraRow(){
+  var rows = document.getElementById("edit-perf-rows");
+  var wrap = document.createElement("div");
+  wrap.dataset.extra = "1";
+  wrap.style.cssText = "margin-bottom:10px;padding:10px;background:#1C1C1C;border-radius:10px;border:1px solid var(--border-s)";
+  // header
+  var hdr = document.createElement("div");
+  hdr.style.cssText = "display:flex;justify-content:space-between;align-items:center;margin-bottom:8px";
+  var lbl = document.createElement("span");
+  lbl.style.cssText = "font-size:12px;font-weight:700;color:#FF6B4A;text-transform:uppercase;letter-spacing:.06em";
+  lbl.textContent = "Extra exercise";
+  var del = document.createElement("button");
+  del.textContent = "×";
+  del.style.cssText = "background:#2A2A2A;border:none;color:#fff;border-radius:6px;width:22px;height:22px;cursor:pointer;font-size:14px;line-height:1";
+  del.onclick = function(){ wrap.remove(); };
+  hdr.appendChild(lbl); hdr.appendChild(del);
+  wrap.appendChild(hdr);
+  // name input
+  var nameInp = document.createElement("input");
+  nameInp.type="text"; nameInp.className="fi ep-extra-name";
+  nameInp.placeholder="Exercise name"; nameInp.style.cssText="width:100%;box-sizing:border-box;margin-bottom:6px;font-size:12px";
+  wrap.appendChild(nameInp);
+  // fields container
+  var fields = document.createElement("div");
+  fields.className = "ep-extra-fields";
+  wrap.appendChild(fields);
+  function renderEpExtraFields(){
+    var wc = isWarmCool(nameInp.value);
+    fields.innerHTML = "";
+    if(!wc){
+      var grid = document.createElement("div");
+      grid.style.cssText = "display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:6px";
+      [{cls:"ep-extra-sets",ph:"Sets"},{cls:"ep-extra-reps",ph:"Reps"},{cls:"ep-extra-weight",ph:"Body or kg"}].forEach(function(f){
+        var inp = document.createElement("input");
+        inp.className="fi "+f.cls; inp.placeholder=f.ph; inp.style.cssText="font-size:12px;padding:8px 6px";
+        grid.appendChild(inp);
+      });
+      fields.appendChild(grid);
+    }
+    var notesInp = document.createElement("input");
+    notesInp.type="text"; notesInp.className="fi ep-extra-notes";
+    notesInp.placeholder = wc ? "What did you do?" : "Notes...";
+    notesInp.style.cssText="font-size:11px;padding:6px 10px;width:100%;box-sizing:border-box";
+    fields.appendChild(notesInp);
+  }
+  nameInp.addEventListener("input", renderEpExtraFields);
+  renderEpExtraFields();
+  rows.appendChild(wrap);
+  nameInp.focus();
+}
+
 function saveEditPerf(){
   var id = parseInt(document.getElementById("edit-perf-id").value);
   var notes = (document.getElementById("edit-perf-notes").value||"").trim();
@@ -2852,11 +2985,12 @@ function saveEditPerf(){
   var fb = document.getElementById("edit-perf-fb");
   var idx = gymLog.findIndex(function(e){ return e.id===id; });
   if(idx===-1){ fb.textContent="Not found"; return; }
-  var wrappers = document.querySelectorAll("#edit-perf-rows > div");
+  // update existing (non-extra) entries by position
+  var existingWrappers = Array.from(document.querySelectorAll("#edit-perf-rows > div")).filter(function(d){ return !d.dataset.extra; });
   gymLog[idx].notes = notes;
   gymLog[idx].duration = dur ? parseInt(dur) : null;
   gymLog[idx].performance.forEach(function(p, i){
-    var wrap = wrappers[i]; if(!wrap) return;
+    var wrap = existingWrappers[i]; if(!wrap) return;
     var wc = wrap.dataset.warmcool === "1";
     p.warmCool = wc;
     if(!wc){
@@ -2865,6 +2999,23 @@ function saveEditPerf(){
       p.weight = (wrap.querySelector(".ep-weight")||{value:null}).value || null;
     }
     p.notes  = (wrap.querySelector(".ep-ex-notes")||{value:""}).value || null;
+  });
+  // append new extra entries
+  document.querySelectorAll("#edit-perf-rows > div[data-extra='1']").forEach(function(row){
+    var name = (row.querySelector(".ep-extra-name")||{value:""}).value.trim();
+    if(!name) return;
+    var wc = isWarmCool(name);
+    if(wc){
+      gymLog[idx].performance.push({ name:name, warmCool:true, extra:true,
+        notes:(row.querySelector(".ep-extra-notes")||{value:""}).value||null });
+    } else {
+      gymLog[idx].performance.push({ name:name, extra:true,
+        sets:   (row.querySelector(".ep-extra-sets")||{value:null}).value   || null,
+        reps:   (row.querySelector(".ep-extra-reps")||{value:null}).value   || null,
+        weight: (row.querySelector(".ep-extra-weight")||{value:null}).value || null,
+        notes:  (row.querySelector(".ep-extra-notes")||{value:""}).value    || null
+      });
+    }
   });
   svGym();
   fb.textContent = "Saved!";
@@ -3079,6 +3230,7 @@ function addEditExRow(){ var wrap=document.getElementById("edit-exercises-inputs
       <div style="font-size:10px;font-weight:700;color:var(--ink-m);text-transform:uppercase">Weight</div>
     </div>
     <div id="edit-perf-rows"></div>
+    <button onclick="addEditPerfExtraRow()" style="width:100%;padding:8px;border-radius:var(--r-sm);border:1.5px dashed var(--border);background:transparent;color:var(--sage);font-family:Nunito,sans-serif;font-size:13px;font-weight:600;cursor:pointer;margin-top:4px">+ Add extra exercise</button>
     <input type="hidden" id="edit-perf-id">
     <button onclick="saveEditPerf()" class="btn-primary" style="margin-top:12px">Save changes</button>
     <div style="font-size:12px;text-align:center;margin-top:8px;min-height:14px;color:var(--sage);font-weight:600" id="edit-perf-fb"></div>
