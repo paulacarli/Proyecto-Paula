@@ -1207,9 +1207,9 @@ function exportGymReport(){
     var exRows = "";
     (entry.performance||[]).forEach(function(p){
       if(p.warmCool || isWarmCool(p.name)){
-        exRows += "<tr class='wc'><td colspan='4'><span class='wc-name'>"+p.name+"</span>"+(p.notes?" — "+p.notes:"")+"</td></tr>";
+        exRows += "<tr class='wc'><td colspan='5'><span class='wc-name'>"+p.name+"</span>"+(p.notes?" — "+p.notes:"")+"</td></tr>";
       } else {
-        exRows += "<tr><td>"+p.name+"</td><td>"+(p.sets||"—")+"</td><td>"+(p.reps||"—")+"</td><td>"+wLabel(p.weight)+"</td></tr>";
+        exRows += "<tr><td>"+p.name+(p.extra?"<span class='extra-badge'>extra</span>":"")+"</td><td>"+(p.sets||"—")+"</td><td>"+(p.reps||"—")+"</td><td>"+wLabel(p.weight)+"</td><td class='ex-notes'>"+(p.notes||"")+"</td></tr>";
       }
     });
     rows += "<div class='session'>"
@@ -1218,7 +1218,7 @@ function exportGymReport(){
       +"<span class='session-name'>"+entry.routineName+"</span>"
       +(entry.duration?"<span class='session-meta'>"+entry.duration+" min</span>":"")
       +"</div>"
-      +(exRows?"<table><thead><tr><th>Exercise</th><th>Sets</th><th>Reps</th><th>Weight</th></tr></thead><tbody>"+exRows+"</tbody></table>":"")
+      +(exRows?"<table><thead><tr><th>Exercise</th><th>Sets</th><th>Reps</th><th>Weight</th><th>Notes</th></tr></thead><tbody>"+exRows+"</tbody></table>":"")
       +(entry.notes?"<div class='session-notes'>"+entry.notes+"</div>":"")
       +"</div>";
   });
@@ -1242,6 +1242,8 @@ function exportGymReport(){
     +"tr.wc td{color:#888;font-style:italic;background:#fafafa}"
     +".wc-name{font-weight:700;color:#FF6B4A;font-style:normal}"
     +".session-notes{padding:8px 14px;font-size:12px;color:#666;background:#fffdf9;border-top:1px solid #eee}"
+    +".ex-notes{color:#888;font-style:italic;font-size:12px}"
+    +".extra-badge{display:inline-block;font-size:9px;font-weight:700;color:#FF6B4A;border:1px solid #FF6B4A;border-radius:4px;padding:1px 4px;margin-left:5px;vertical-align:middle;font-style:normal}"
     +"@media print{body{padding:16px}.session{page-break-inside:avoid}}"
     +"</style></head><body>"
     +"<h1>Gym Progress Report</h1>"
