@@ -688,6 +688,7 @@ html,body{height:100%;font-family:"Nunito",sans-serif;background:#0A0A0A;color:v
   <div class="tabs">
     <button class="tb on" data-fn="showGT" data-arg="groutines">My routines</button>
     <button class="tb" data-fn="showGT" data-arg="glog">Performance</button>
+    <button class="tb" data-fn="showGT" data-arg="gcharts">Charts</button>
   </div>
 
   <!-- MY ROUTINES -->
@@ -697,36 +698,65 @@ html,body{height:100%;font-family:"Nunito",sans-serif;background:#0A0A0A;color:v
 
   <!-- PERFORMANCE -->
   <div id="glog" style="display:none">
-    <div class="card">
-      <div style="font-size:16px;font-weight:700;color:#fff;margin-bottom:4px">Log performance</div>
-      <p style="font-size:12px;color:var(--ink-m);margin-bottom:14px">Pick a routine — fill in what you actually did. Target shown as placeholder.</p>
+    <!-- STEP 1: pick routine -->
+    <div class="card" id="log-pick-card">
+      <div style="font-size:16px;font-weight:700;color:#fff;margin-bottom:4px">Start session</div>
+      <p style="font-size:12px;color:var(--ink-m);margin-bottom:14px">Pick a routine and start your session. Fill in each exercise as you go.</p>
       <div class="ff"><label class="fl">Routine</label>
         <select id="log-routine" class="fi"><option value="">Select a routine...</option></select>
       </div>
-      <div class="fg2">
+      <div class="fg2" style="margin-top:8px">
         <div class="ff"><label class="fl">Date</label><input type="date" id="log-date" class="fi"></div>
-        <div class="ff"><label class="fl">Start</label><input type="time" id="log-start" class="fi"></div>
-        <div class="ff"><label class="fl">End</label><input type="time" id="log-end" class="fi" oninput="calcLogDur()"></div>
-        <div class="ff"><label class="fl">Duration (min)</label><input type="number" id="log-dur" class="fi" placeholder="auto" min="1"></div>
       </div>
-      <div id="log-exercises-wrap" style="display:none;margin-top:14px">
-        <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:6px;margin-bottom:8px">
-          <div style="font-size:10px;font-weight:700;color:var(--ink-m);text-transform:uppercase">Exercise</div>
-          <div style="font-size:10px;font-weight:700;color:var(--ink-m);text-transform:uppercase">Sets</div>
-          <div style="font-size:10px;font-weight:700;color:var(--ink-m);text-transform:uppercase">Reps</div>
-          <div style="font-size:10px;font-weight:700;color:var(--ink-m);text-transform:uppercase">Weight</div>
+      <button onclick="startLiveSession()" class="btn-primary" style="margin-top:14px">Start session →</button>
+      <div style="font-size:12px;text-align:center;margin-top:8px;min-height:14px;color:#e05a3a;font-weight:600" id="log-pick-fb"></div>
+    </div>
+
+    <!-- STEP 2: live session -->
+    <div id="log-live-card" style="display:none">
+      <div class="card" style="margin-bottom:4px">
+        <!-- session header -->
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+          <div>
+            <div id="live-routine-name" style="font-size:16px;font-weight:800;color:#fff"></div>
+            <div id="live-session-date" style="font-size:11px;color:var(--ink-m);margin-top:1px"></div>
+          </div>
+          <!-- global timer -->
+          <div style="text-align:right">
+            <div id="live-global-timer" style="font-size:22px;font-weight:800;color:var(--peach);font-variant-numeric:tabular-nums;letter-spacing:-1px">00:00</div>
+            <div style="font-size:10px;color:var(--ink-m);text-transform:uppercase;letter-spacing:.06em">total time</div>
+          </div>
         </div>
-        <div id="log-ex-rows"></div>
-        <button id="log-add-extra-btn" onclick="addLogExtraRow()" style="display:none;width:100%;padding:8px;border-radius:var(--r-sm);border:1.5px dashed var(--border);background:transparent;color:var(--sage);font-family:Nunito,sans-serif;font-size:13px;font-weight:600;cursor:pointer;margin-top:4px">+ Add extra exercise</button>
+
+        <!-- exercise cards -->
+        <div id="live-ex-list"></div>
+
+        <!-- add extra -->
+        <button onclick="addLiveExtra()" style="width:100%;padding:9px;border-radius:var(--r-sm);border:1.5px dashed var(--border);background:transparent;color:var(--sage);font-family:Nunito,sans-serif;font-size:13px;font-weight:600;cursor:pointer;margin-top:4px">+ Add extra exercise</button>
+
+        <!-- session notes + finish -->
+        <div class="ff" style="margin-top:14px"><label class="fl">Session notes</label>
+          <input type="text" id="live-notes" class="fi" placeholder="e.g. felt strong, PR on squat...">
+        </div>
+        <button onclick="finishLiveSession()" class="btn-primary" style="margin-top:10px;background:#FF6B4A">Finish &amp; save session</button>
+        <button onclick="cancelLiveSession()" style="width:100%;margin-top:6px;padding:8px;border-radius:var(--r-sm);border:none;background:transparent;color:var(--ink-m);font-family:Nunito,sans-serif;font-size:12px;cursor:pointer">Cancel session</button>
+        <div style="font-size:12px;text-align:center;margin-top:8px;min-height:14px;color:var(--sage);font-weight:600" id="log-fb"></div>
       </div>
-      <div class="ff" style="margin-top:10px"><label class="fl">Notes</label>
-        <input type="text" id="log-notes" class="fi" placeholder="e.g. felt strong, PR on squat...">
-      </div>
-      <button class="btn-primary" data-fn="savePerformanceLog">Save performance</button>
-      <div style="font-size:12px;text-align:center;margin-top:8px;min-height:16px;color:var(--sage);font-weight:600" id="log-fb"></div>
     </div>
     <div class="card" style="margin-top:4px">
-      <div style="font-size:16px;font-weight:700;color:#fff;margin-bottom:10px">Progress chart</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+        <div style="font-size:16px;font-weight:700;color:#fff">Session history</div>
+        <button onclick="exportGymReport()" style="background:#2A2A2A;border:none;color:var(--peach);font-size:12px;font-weight:700;font-family:'Nunito',sans-serif;padding:6px 12px;border-radius:8px;cursor:pointer">⬇️ Export report</button>
+      </div>
+      <select id="log-filter" class="fi" style="margin-bottom:14px"><option value="">All routines</option></select>
+      <div id="perf-history-list"><div class="empty"><div class="empty-icon">📈</div>No sessions logged yet</div></div>
+    </div>
+  </div>
+
+  <!-- CHARTS -->
+  <div id="gcharts" style="display:none">
+    <div class="card">
+      <div style="font-size:16px;font-weight:700;color:#fff;margin-bottom:10px">Exercise progression</div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;align-items:center">
         <select id="chart-ex-select" class="fi" style="flex:1;min-width:140px"><option value="">Select exercise...</option></select>
         <div style="display:flex;gap:4px">
@@ -767,14 +797,6 @@ html,body{height:100%;font-family:"Nunito",sans-serif;background:#0A0A0A;color:v
         </svg>
       </div>
       <div style="font-size:11px;color:var(--ink-m);margin-top:6px;text-align:center">Total volume = sets × reps × kg per session</div>
-    </div>
-    <div class="card" style="margin-top:4px">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-        <div style="font-size:16px;font-weight:700;color:#fff">Session history</div>
-        <button onclick="exportGymReport()" style="background:#2A2A2A;border:none;color:var(--peach);font-size:12px;font-weight:700;font-family:'Nunito',sans-serif;padding:6px 12px;border-radius:8px;cursor:pointer">⬇️ Export report</button>
-      </div>
-      <select id="log-filter" class="fi" style="margin-bottom:14px"><option value="">All routines</option></select>
-      <div id="perf-history-list"><div class="empty"><div class="empty-icon">📈</div>No sessions logged yet</div></div>
     </div>
   </div>
 
@@ -1206,43 +1228,59 @@ function exportGymReport(){
   gymLog.slice().sort(function(a,b){ return a.date.localeCompare(b.date); }).forEach(function(entry){
     var exRows = "";
     (entry.performance||[]).forEach(function(p){
+      var timer = p.timerDisp ? "<span class='ex-timer'>⏱ "+p.timerDisp+"</span>" : "";
       if(p.warmCool || isWarmCool(p.name)){
-        exRows += "<tr class='wc'><td colspan='5'><span class='wc-name'>"+p.name+"</span>"+(p.notes?" — "+p.notes:"")+"</td></tr>";
+        exRows += "<tr class='wc'><td colspan='6'><span class='wc-name'>"+p.name+"</span>"+(p.extra?"<span class='extra-badge'>extra</span>":"")+(p.notes?" — "+p.notes:"")+timer+"</td></tr>";
       } else {
-        exRows += "<tr><td>"+p.name+(p.extra?"<span class='extra-badge'>extra</span>":"")+"</td><td>"+(p.sets||"—")+"</td><td>"+(p.reps||"—")+"</td><td>"+wLabel(p.weight)+"</td><td class='ex-notes'>"+(p.notes||"")+"</td></tr>";
+        var tgtParts = [];
+        if(p.tSets||p.tReps||p.tWeight) tgtParts.push("target: "+(p.tSets||"?")+"×"+(p.tReps||"?")+(p.tWeight?" @ "+p.tWeight+(p.tWeight.toLowerCase()==="body"?"":"kg"):""));
+        var tgt = tgtParts.length ? "<div class='ex-target'>"+tgtParts[0]+"</div>" : "";
+        exRows += "<tr>"
+          +"<td>"+p.name+(p.extra?"<span class='extra-badge'>extra</span>":"")+tgt+"</td>"
+          +"<td>"+(p.sets||"—")+"</td>"
+          +"<td>"+(p.reps||"—")+"</td>"
+          +"<td>"+wLabel(p.weight)+"</td>"
+          +"<td class='ex-notes'>"+(p.notes||"")+"</td>"
+          +"<td class='ex-timer-cell'>"+timer+"</td>"
+          +"</tr>";
       }
     });
+    // Build time string
+    var timeStr = (entry.startTime && entry.endTime) ? entry.startTime+" – "+entry.endTime : "";
     rows += "<div class='session'>"
       +"<div class='session-hdr'>"
       +"<span class='session-date'>"+fmtDate(entry.date)+"</span>"
       +"<span class='session-name'>"+entry.routineName+"</span>"
-      +(entry.duration?"<span class='session-meta'>"+entry.duration+" min</span>":"")
+      +"<span class='session-meta'>"+(timeStr?timeStr+(entry.duration?" · ":""):"")+( entry.duration?entry.duration+" min":"")+"</span>"
       +"</div>"
-      +(exRows?"<table><thead><tr><th>Exercise</th><th>Sets</th><th>Reps</th><th>Weight</th><th>Notes</th></tr></thead><tbody>"+exRows+"</tbody></table>":"")
-      +(entry.notes?"<div class='session-notes'>"+entry.notes+"</div>":"")
+      +(exRows?"<table><thead><tr><th>Exercise</th><th>Sets</th><th>Reps</th><th>Weight</th><th>Notes</th><th>Time</th></tr></thead><tbody>"+exRows+"</tbody></table>":"")
+      +(entry.notes?"<div class='session-notes'>📝 "+entry.notes+"</div>":"")
       +"</div>";
   });
   var html = "<!DOCTYPE html><html><head><meta charset='utf-8'>"
     +"<title>Gym Report</title>"
     +"<style>"
     +"*{box-sizing:border-box;margin:0;padding:0}"
-    +"body{font-family:Arial,sans-serif;color:#1a1a1a;background:#fff;padding:32px;max-width:700px;margin:0 auto}"
+    +"body{font-family:Arial,sans-serif;color:#1a1a1a;background:#fff;padding:32px;max-width:760px;margin:0 auto}"
     +"h1{font-size:22px;font-weight:800;margin-bottom:4px}"
     +".sub{font-size:13px;color:#666;margin-bottom:28px}"
     +".session{border:1px solid #e0e0e0;border-radius:8px;margin-bottom:16px;overflow:hidden}"
-    +".session-hdr{background:#f5f5f5;padding:10px 14px;display:flex;align-items:center;gap:12px}"
+    +".session-hdr{background:#f5f5f5;padding:10px 14px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}"
     +".session-date{font-size:13px;font-weight:700;color:#333;min-width:100px}"
     +".session-name{font-size:14px;font-weight:800;flex:1}"
     +".session-meta{font-size:12px;color:#888;white-space:nowrap}"
     +"table{width:100%;border-collapse:collapse}"
     +"th{font-size:10px;text-transform:uppercase;font-weight:700;color:#888;padding:8px 14px;text-align:left;border-bottom:1px solid #eee}"
-    +"td{font-size:13px;padding:8px 14px;border-bottom:1px solid #f0f0f0}"
+    +"td{font-size:13px;padding:8px 14px;border-bottom:1px solid #f0f0f0;vertical-align:top}"
     +"tr:last-child td{border-bottom:none}"
     +"tr td:first-child{font-weight:600}"
     +"tr.wc td{color:#888;font-style:italic;background:#fafafa}"
     +".wc-name{font-weight:700;color:#FF6B4A;font-style:normal}"
-    +".session-notes{padding:8px 14px;font-size:12px;color:#666;background:#fffdf9;border-top:1px solid #eee}"
+    +".session-notes{padding:8px 14px;font-size:12px;color:#555;background:#fffdf9;border-top:1px solid #eee}"
     +".ex-notes{color:#888;font-style:italic;font-size:12px}"
+    +".ex-timer{font-size:11px;color:#FF6B4A;font-weight:700;white-space:nowrap;margin-left:6px}"
+    +".ex-timer-cell{white-space:nowrap;color:#FF6B4A;font-size:12px;font-weight:700}"
+    +".ex-target{font-size:10px;color:#aaa;font-weight:400;margin-top:2px}"
     +".extra-badge{display:inline-block;font-size:9px;font-weight:700;color:#FF6B4A;border:1px solid #FF6B4A;border-radius:4px;padding:1px 4px;margin-left:5px;vertical-align:middle;font-style:normal}"
     +"@media print{body{padding:16px}.session{page-break-inside:avoid}}"
     +"</style></head><body>"
@@ -2046,7 +2084,7 @@ function migrateGymToExercises(){
 
 // ── Tab switcher ──
 function showGT(el, id){
-  ["groutines","glog"].forEach(function(t){
+  ["groutines","glog","gcharts"].forEach(function(t){
     var e = document.getElementById(t);
     if(e) e.style.display = (t===id) ? "block" : "none";
   });
@@ -2054,6 +2092,7 @@ function showGT(el, id){
   el.classList.add("on");
   if(id==="groutines") rRoutinesList();
   if(id==="glog")      openPerfTab();
+  if(id==="gcharts"){  populateChartExSelect(); populateRChartSelect(); }
 }
 
 // ── Exercise row builder (shared by New Routine and Edit) ──
@@ -2268,18 +2307,12 @@ function openPerfTab(){
       fsel.appendChild(o);
     });
   }
-  // Reset form
-  document.getElementById("log-exercises-wrap").style.display = "none";
-  document.getElementById("log-ex-rows").innerHTML = "";
-  var extraBtn0 = document.getElementById("log-add-extra-btn"); if(extraBtn0) extraBtn0.style.display="none";
+  // Reset to pick card
   var ld = document.getElementById("log-date");
   if(ld && !ld.value) ld.value = tday();
-  var ls = document.getElementById("log-start");
-  var le = document.getElementById("log-end");
-  if(ls) ls.value = "";
-  if(le) le.value = "";
-  populateChartExSelect();
-  populateRChartSelect();
+  document.getElementById("log-pick-card").style.display = "block";
+  document.getElementById("log-live-card").style.display = "none";
+  stopGlobalTimer();
   rPerfHistory();
 }
 
@@ -2593,195 +2626,296 @@ function showRChartTip(x,y,date,val){
 function hideRChartTip(){ var g=document.getElementById("rchart-tooltip-g"); if(g) g.style.display="none"; }
 // ── END ROUTINE CHART ─────────────────────────────────────────────
 
-function loadLogExercises(){
+// ── LIVE SESSION ─────────────────────────────────────────────────
+var liveSessionRid = null;
+var liveSessionStart = null;
+var liveGlobalInterval = null;
+var liveExTimers = {}; // key: ex card index, value: {start, elapsed, interval, running}
+
+function stopGlobalTimer(){
+  if(liveGlobalInterval){ clearInterval(liveGlobalInterval); liveGlobalInterval=null; }
+  Object.keys(liveExTimers).forEach(function(k){
+    var t=liveExTimers[k]; if(t && t.interval){ clearInterval(t.interval); }
+  });
+  liveExTimers = {};
+}
+
+function fmtTimer(sec){
+  var m = Math.floor(sec/60), s = sec%60;
+  return (m<10?"0":"")+m+":"+(s<10?"0":"")+s;
+}
+
+function startLiveSession(){
   var rid = parseInt(document.getElementById("log-routine").value);
-  var wrap = document.getElementById("log-exercises-wrap");
-  var rows = document.getElementById("log-ex-rows");
-  rows.innerHTML = "";
-  if(!rid){ wrap.style.display = "none"; return; }
-  var r = routines.find(function(r){ return r.id === rid; });
-  if(!r || !r.exercises.length){ wrap.style.display = "none"; return; }
-  r.exercises.forEach(function(ex){
-    var wc = isWarmCool(ex.name);
-    var row = document.createElement("div");
-    row.style.cssText = "margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid #1F1F1F";
-    // Name + target hint
-    var nm = document.createElement("div");
-    nm.style.cssText = "font-size:13px;color:#fff;font-weight:600;margin-bottom:4px";
-    nm.textContent = ex.name + (wc ? " 🔥" : "");
-    row.appendChild(nm);
-    if(!wc){
-      var tgt = document.createElement("div");
-      tgt.style.cssText = "font-size:10px;color:var(--ink-m);margin-bottom:6px";
-      var wLabel = ex.peso ? (ex.peso.toLowerCase()==="body" ? "bodyweight" : "@ "+ex.peso+" kg") : "";
-      tgt.textContent = "target: "+(ex.series||"?")+"×"+(ex.reps||"?")+(wLabel?" "+wLabel:"")+(ex.notes?" · "+ex.notes:"");
-      row.appendChild(tgt);
-      var grid = document.createElement("div");
-      grid.style.cssText = "display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px";
-      [{cls:"log-sets",ph:ex.series||"Sets",type:"number"},
-       {cls:"log-reps",ph:ex.reps||"Reps",type:"number"},
-       {cls:"log-weight",ph:(ex.peso&&ex.peso.toLowerCase()==="body")?"Body":ex.peso||"kg",type:"text"}
-      ].forEach(function(f){
-        var inp = document.createElement("input");
-        inp.type=f.type; inp.className="fi "+f.cls;
-        inp.placeholder=f.ph; inp.style.cssText="font-size:12px;padding:8px 6px";
-        if(f.type==="number") inp.min="1";
-        grid.appendChild(inp);
-      });
-      row.appendChild(grid);
-    } else {
-      // Warm/cool: just a notes field
-      if(ex.notes){
-        var hint=document.createElement("div");
-        hint.style.cssText="font-size:10px;color:var(--ink-m);margin-bottom:6px";
-        hint.textContent="Planned: "+ex.notes;
-        row.appendChild(hint);
-      }
-      var notesInp=document.createElement("input");
-      notesInp.type="text"; notesInp.className="fi log-wc-notes";
-      notesInp.placeholder="What did you do?";
-      notesInp.style.cssText="font-size:12px;padding:8px 10px;width:100%;box-sizing:border-box";
-      row.appendChild(notesInp);
-    }
-    rows.appendChild(row);
-  });
-  wrap.style.display = "block";
-  var extraBtn = document.getElementById("log-add-extra-btn");
-  if(extraBtn) extraBtn.style.display = "block";
-}
-
-function addLogExtraRow(){
-  var rows = document.getElementById("log-ex-rows");
-  if(!rows) return;
-  var row = document.createElement("div");
-  row.dataset.extra = "1";
-  row.style.cssText = "margin-bottom:12px;padding:10px;border-radius:10px;background:#1C1C1C;border:1px solid var(--border-s)";
-
-  var header = document.createElement("div");
-  header.style.cssText = "font-size:11px;font-weight:700;color:var(--sage);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center";
-  header.innerHTML = "<span>Extra exercise</span>";
-  var rmBtn = document.createElement("button");
-  rmBtn.textContent="×"; rmBtn.style.cssText="background:#2A2A2A;border:none;color:#707068;border-radius:6px;width:22px;height:22px;cursor:pointer;font-size:13px;line-height:1";
-  rmBtn.addEventListener("click",function(){ row.remove(); });
-  header.appendChild(rmBtn);
-  row.appendChild(header);
-
-  var nameInp = document.createElement("input");
-  nameInp.type="text"; nameInp.className="fi log-extra-name";
-  nameInp.placeholder="Exercise name"; nameInp.style.cssText="font-size:13px;padding:8px 10px;margin-bottom:6px;width:100%;box-sizing:border-box";
-  row.appendChild(nameInp);
-
-  // Grid or notes depending on name
-  var fieldsWrap = document.createElement("div");
-  fieldsWrap.className="log-extra-fields";
-  row.appendChild(fieldsWrap);
-
-  function renderExtraFields(){
-    var wc = isWarmCool(nameInp.value);
-    fieldsWrap.innerHTML="";
-    if(wc){
-      var notesInp=document.createElement("input");
-      notesInp.type="text"; notesInp.className="fi log-extra-notes";
-      notesInp.placeholder="What did you do?"; notesInp.style.cssText="font-size:12px;padding:8px 10px;width:100%;box-sizing:border-box";
-      fieldsWrap.appendChild(notesInp);
-    } else {
-      var grid=document.createElement("div");
-      grid.style.cssText="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px";
-      [{cls:"log-extra-sets",ph:"Sets",type:"number"},{cls:"log-extra-reps",ph:"Reps",type:"number"},{cls:"log-extra-weight",ph:"Body or kg",type:"text"}].forEach(function(f){
-        var inp=document.createElement("input");
-        inp.type=f.type; inp.className="fi "+f.cls;
-        inp.placeholder=f.ph; inp.style.cssText="font-size:12px;padding:8px 6px";
-        if(f.type==="number") inp.min="1";
-        grid.appendChild(inp);
-      });
-      var notesInp=document.createElement("input");
-      notesInp.type="text"; notesInp.className="fi log-extra-notes";
-      notesInp.placeholder="Notes (optional)"; notesInp.style.cssText="font-size:11px;padding:6px 10px;margin-top:6px;width:100%;box-sizing:border-box;color:var(--ink-m)";
-      fieldsWrap.appendChild(grid);
-      fieldsWrap.appendChild(notesInp);
-    }
-  }
-  renderExtraFields();
-  nameInp.addEventListener("change", renderExtraFields);
-
-  rows.appendChild(row);
-  nameInp.focus();
-}
-
-function savePerformanceLog(){
-  var rid  = parseInt(document.getElementById("log-routine").value);
   var date = document.getElementById("log-date").value;
-  var dur  = document.getElementById("log-dur").value;
-  var note = (document.getElementById("log-notes").value||"").trim();
-  var fb   = document.getElementById("log-fb");
-  if(!rid){ fb.textContent = "Select a routine"; return; }
-  if(!date){ fb.textContent = "Select a date"; return; }
+  var fb = document.getElementById("log-pick-fb");
+  if(!rid){ fb.textContent="Select a routine first"; return; }
+  if(!date){ fb.textContent="Select a date"; return; }
+  fb.textContent="";
   var r = routines.find(function(r){ return r.id===rid; });
-  // Routine exercises (non-extra rows, in order)
-  var exRows = Array.from(document.querySelectorAll("#log-ex-rows > div")).filter(function(d){ return !d.dataset.extra; });
-  var perf = [];
-  if(r){
-    r.exercises.forEach(function(ex, i){
-      var row = exRows[i]; if(!row) return;
-      var wc = isWarmCool(ex.name);
-      if(wc){
-        perf.push({ name:ex.name, warmCool:true,
-          notes:(row.querySelector(".log-wc-notes")||{value:""}).value||null });
-      } else {
-        perf.push({
-          name:    ex.name,
-          sets:    (row.querySelector(".log-sets")||{value:null}).value   || null,
-          reps:    (row.querySelector(".log-reps")||{value:null}).value   || null,
-          weight:  (row.querySelector(".log-weight")||{value:null}).value || null,
-          tSets:   ex.series, tReps: ex.reps, tWeight: ex.peso
-        });
-      }
-    });
+  if(!r){ fb.textContent="Routine not found"; return; }
+  liveSessionRid = rid;
+  liveSessionStart = Date.now();
+  liveExTimers = {};
+
+  // Switch cards
+  document.getElementById("log-pick-card").style.display="none";
+  document.getElementById("log-live-card").style.display="block";
+  document.getElementById("live-routine-name").textContent = r.name;
+  var months=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  var dp=date.split("-");
+  document.getElementById("live-session-date").textContent = dp[2]+" "+months[parseInt(dp[1])-1]+" "+dp[0];
+  document.getElementById("live-notes").value="";
+  document.getElementById("log-fb").textContent="";
+
+  // Build exercise cards
+  var list = document.getElementById("live-ex-list");
+  list.innerHTML="";
+  r.exercises.forEach(function(ex, idx){
+    list.appendChild(makeLiveExCard(ex, idx, false));
+  });
+
+  // Global timer
+  liveGlobalInterval = setInterval(function(){
+    var sec = Math.floor((Date.now()-liveSessionStart)/1000);
+    var el = document.getElementById("live-global-timer");
+    if(el) el.textContent = fmtTimer(sec);
+  }, 1000);
+}
+
+function makeLiveExCard(ex, idx, isExtra){
+  var wc = isWarmCool(ex.name||"");
+  var card = document.createElement("div");
+  card.dataset.liveIdx = idx;
+  if(isExtra) card.dataset.extra = "1";
+  card.style.cssText = "background:#1C1C1C;border:1px solid var(--border-s);border-radius:12px;padding:12px 12px 10px;margin-bottom:8px";
+
+  // Header row: name + timer
+  var hdr = document.createElement("div");
+  hdr.style.cssText = "display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;gap:8px";
+
+  var nameWrap = document.createElement("div");
+  nameWrap.style.cssText = "flex:1;min-width:0";
+
+  if(isExtra){
+    // Editable name for extras
+    var nameInp = document.createElement("input");
+    nameInp.type="text"; nameInp.className="fi live-extra-name";
+    nameInp.placeholder="Exercise name";
+    nameInp.style.cssText="font-size:13px;font-weight:700;padding:4px 8px;width:100%;box-sizing:border-box";
+    nameInp.addEventListener("input", function(){ rebuildLiveExFields(card, nameInp.value, wc !== isWarmCool(nameInp.value)); wc=isWarmCool(nameInp.value); });
+    nameWrap.appendChild(nameInp);
+  } else {
+    var nm = document.createElement("div");
+    nm.style.cssText = "font-size:14px;font-weight:700;color:#fff";
+    nm.textContent = ex.name + (wc?" 🔥":"");
+    nameWrap.appendChild(nm);
+    if(!wc && (ex.series||ex.reps||ex.peso)){
+      var tgt = document.createElement("div");
+      tgt.style.cssText = "font-size:10px;color:var(--ink-m);margin-top:2px";
+      var wLbl = ex.peso?(ex.peso.toLowerCase()==="body"?"bodyweight":"@ "+ex.peso+" kg"):"";
+      tgt.textContent = "target: "+(ex.series||"?")+"×"+(ex.reps||"?")+(wLbl?" "+wLbl:"")+(ex.notes?" · "+ex.notes:"");
+      nameWrap.appendChild(tgt);
+    } else if(wc && ex.notes){
+      var hint = document.createElement("div");
+      hint.style.cssText = "font-size:10px;color:var(--ink-m);margin-top:2px";
+      hint.textContent = ex.notes;
+      nameWrap.appendChild(hint);
+    }
   }
-  // Extra exercises added on the fly
-  document.querySelectorAll("#log-ex-rows > div[data-extra='1']").forEach(function(row){
-    var name = (row.querySelector(".log-extra-name")||{value:""}).value.trim();
-    if(!name) return;
-    var wc = isWarmCool(name);
-    if(wc){
-      perf.push({ name:name, warmCool:true, extra:true,
-        notes:(row.querySelector(".log-extra-notes")||{value:""}).value||null });
+  hdr.appendChild(nameWrap);
+
+  // Timer controls
+  var timerWrap = document.createElement("div");
+  timerWrap.style.cssText = "display:flex;align-items:center;gap:6px;flex-shrink:0";
+  var timerDisp = document.createElement("div");
+  timerDisp.className = "live-ex-timer-disp";
+  timerDisp.style.cssText = "font-size:13px;font-weight:700;color:var(--ink-m);font-variant-numeric:tabular-nums;min-width:38px;text-align:right";
+  timerDisp.textContent = "00:00";
+  var timerBtn = document.createElement("button");
+  timerBtn.className = "live-ex-timer-btn";
+  timerBtn.textContent = "▶";
+  timerBtn.title = "Start/stop exercise timer";
+  timerBtn.style.cssText = "background:#2A2A2A;border:none;color:var(--peach);border-radius:8px;width:28px;height:28px;cursor:pointer;font-size:12px;line-height:1;flex-shrink:0";
+  // timer state per card
+  var timerState = { running:false, elapsed:0, start:0, interval:null };
+  timerBtn.addEventListener("click", function(){
+    if(timerState.running){
+      clearInterval(timerState.interval);
+      timerState.elapsed += Math.floor((Date.now()-timerState.start)/1000);
+      timerState.running = false;
+      timerBtn.textContent = "▶";
+      timerBtn.style.color = "var(--peach)";
     } else {
-      perf.push({ name:name, extra:true,
-        sets:   (row.querySelector(".log-extra-sets")||{value:null}).value   || null,
-        reps:   (row.querySelector(".log-extra-reps")||{value:null}).value   || null,
-        weight: (row.querySelector(".log-extra-weight")||{value:null}).value || null,
-        notes:  (row.querySelector(".log-extra-notes")||{value:""}).value    || null
-      });
+      timerState.start = Date.now();
+      timerState.running = true;
+      timerBtn.textContent = "⏸";
+      timerBtn.style.color = "#fff";
+      timerState.interval = setInterval(function(){
+        var sec = timerState.elapsed + Math.floor((Date.now()-timerState.start)/1000);
+        timerDisp.textContent = fmtTimer(sec);
+        timerDisp.style.color = "#FF6B4A";
+      }, 1000);
     }
   });
-  var startTime = (document.getElementById("log-start")||{value:""}).value || null;
-  var endTime   = (document.getElementById("log-end")||{value:""}).value || null;
+  timerWrap.appendChild(timerDisp);
+  timerWrap.appendChild(timerBtn);
+
+  if(isExtra){
+    var rmBtn = document.createElement("button");
+    rmBtn.textContent="×";
+    rmBtn.style.cssText="background:#2A2A2A;border:none;color:#666;border-radius:6px;width:24px;height:24px;cursor:pointer;font-size:15px;line-height:1;flex-shrink:0";
+    rmBtn.addEventListener("click", function(){ card.remove(); });
+    timerWrap.appendChild(rmBtn);
+  }
+  hdr.appendChild(timerWrap);
+  card.appendChild(hdr);
+
+  // Fields area
+  var fieldsDiv = document.createElement("div");
+  fieldsDiv.className = "live-ex-fields";
+  buildLiveExFields(fieldsDiv, ex, wc, isExtra);
+  card.appendChild(fieldsDiv);
+
+  return card;
+}
+
+function buildLiveExFields(container, ex, wc, isExtra){
+  container.innerHTML="";
+  if(!wc){
+    var grid = document.createElement("div");
+    grid.style.cssText = "display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:6px";
+    var ph = isExtra
+      ? [{cls:"live-sets",ph:"Sets",type:"number"},{cls:"live-reps",ph:"Reps",type:"number"},{cls:"live-weight",ph:"Body or kg",type:"text"}]
+      : [{cls:"live-sets",ph:ex.series||"Sets",type:"number"},{cls:"live-reps",ph:ex.reps||"Reps",type:"number"},{cls:"live-weight",ph:(ex.peso&&ex.peso.toLowerCase()==="body")?"Body":ex.peso||"kg",type:"text"}];
+    ph.forEach(function(f){
+      var inp=document.createElement("input");
+      inp.type=f.type; inp.className="fi "+f.cls;
+      inp.placeholder=f.ph; inp.style.cssText="font-size:13px;padding:8px 6px";
+      if(f.type==="number") inp.min="1";
+      grid.appendChild(inp);
+    });
+    container.appendChild(grid);
+  }
+  var notesInp=document.createElement("input");
+  notesInp.type="text"; notesInp.className="fi live-ex-notes";
+  notesInp.placeholder= wc ? "What did you do?" : "Notes (optional)";
+  notesInp.style.cssText="font-size:12px;padding:7px 10px;width:100%;box-sizing:border-box"+(wc?"":";color:var(--ink-m)");
+  container.appendChild(notesInp);
+}
+
+function rebuildLiveExFields(card, name, changed){
+  if(!changed) return;
+  var wc = isWarmCool(name);
+  var fieldsDiv = card.querySelector(".live-ex-fields");
+  if(fieldsDiv) buildLiveExFields(fieldsDiv, {}, wc, true);
+}
+
+function addLiveExtra(){
+  var list = document.getElementById("live-ex-list");
+  if(!list) return;
+  var idx = list.children.length;
+  var card = makeLiveExCard({name:"", series:"", reps:"", peso:"", notes:""}, idx, true);
+  list.appendChild(card);
+  var nameInp = card.querySelector(".live-extra-name");
+  if(nameInp) setTimeout(function(){ nameInp.focus(); }, 50);
+}
+
+function cancelLiveSession(){
+  if(!confirm("Cancel this session? Progress will be lost.")) return;
+  stopGlobalTimer();
+  liveSessionRid = null;
+  document.getElementById("log-pick-card").style.display="block";
+  document.getElementById("log-live-card").style.display="none";
+}
+
+function finishLiveSession(){
+  var rid = liveSessionRid;
+  var date = document.getElementById("log-date").value;
+  var note = (document.getElementById("live-notes").value||"").trim();
+  var fb = document.getElementById("log-fb");
+  if(!rid || !date){ fb.textContent="Missing routine or date"; return; }
+
+  // Calc duration from global timer
+  var totalSec = Math.floor((Date.now() - liveSessionStart) / 1000);
+  var dur = Math.round(totalSec / 60) || null;
+
+  // Calc startTime from session start
+  var startD = new Date(liveSessionStart);
+  var pad = function(n){ return n<10?"0"+n:n; };
+  var startTime = pad(startD.getHours())+":"+pad(startD.getMinutes());
+  var endD = new Date();
+  var endTime = pad(endD.getHours())+":"+pad(endD.getMinutes());
+
+  var r = routines.find(function(r){ return r.id===rid; });
+  var perf = [];
+
+  // Read all live exercise cards
+  var cards = document.querySelectorAll("#live-ex-list > div");
+  cards.forEach(function(card){
+    var isExtra = !!card.dataset.extra;
+    var name, wc;
+    if(isExtra){
+      var nInp = card.querySelector(".live-extra-name");
+      name = nInp ? nInp.value.trim() : "";
+      if(!name) return;
+      wc = isWarmCool(name);
+    } else {
+      var idx2 = parseInt(card.dataset.liveIdx);
+      var ex2 = r && r.exercises[idx2];
+      if(!ex2) return;
+      name = ex2.name;
+      wc = isWarmCool(name);
+    }
+    var fields = card.querySelector(".live-ex-fields");
+    var obj = { name:name };
+    if(isExtra) obj.extra = true;
+    if(wc){ obj.warmCool = true; }
+    else {
+      if(!isExtra && r && r.exercises[parseInt(card.dataset.liveIdx)]){
+        var ex3 = r.exercises[parseInt(card.dataset.liveIdx)];
+        obj.tSets=ex3.series; obj.tReps=ex3.reps; obj.tWeight=ex3.peso;
+      }
+      obj.sets   = (fields&&fields.querySelector(".live-sets")||{value:null}).value   || null;
+      obj.reps   = (fields&&fields.querySelector(".live-reps")||{value:null}).value   || null;
+      obj.weight = (fields&&fields.querySelector(".live-weight")||{value:null}).value || null;
+    }
+    obj.notes = (fields&&fields.querySelector(".live-ex-notes")||{value:""}).value || null;
+    // capture elapsed timer
+    var timerDisp = card.querySelector(".live-ex-timer-disp");
+    if(timerDisp && timerDisp.textContent !== "00:00") obj.timerDisp = timerDisp.textContent;
+    perf.push(obj);
+  });
+
+  stopGlobalTimer();
+
   var entry = { id:Date.now(), routineId:rid, routineName:r?r.name:"",
     date:date, startTime:startTime, endTime:endTime,
-    duration:dur?parseInt(dur):null, notes:note, performance:perf };
+    duration:dur, notes:note, performance:perf };
   gymLog.push(entry);
   gymLog.sort(function(a,b){ return b.date.localeCompare(a.date); });
-  sesiones.push({ id:entry.id, routineId:rid, date:date, duration:entry.duration||0, notes:note });
+  sesiones.push({ id:entry.id, routineId:rid, date:date, duration:dur||0, notes:note });
   sesiones.sort(function(a,b){ return b.date.localeCompare(a.date); });
-  // Also log as exercise entry so it appears in Log > Exercise
-  exs.push({ id:entry.id, date:date, type:"gym", duration:entry.duration||0,
+  exs.push({ id:entry.id, date:date, type:"gym", duration:dur||0,
     notes:(r?r.name:"Gym")+(note?" — "+note:"") });
   exs.sort(function(a,b){ return b.date.localeCompare(a.date); });
-  sv();
-  svGym();
-  rExL();
-  fb.textContent = "Saved!";
-  document.getElementById("log-dur").value = "";
-  document.getElementById("log-notes").value = "";
-  var ls2 = document.getElementById("log-start"); if(ls2) ls2.value = "";
-  var le2 = document.getElementById("log-end");   if(le2) le2.value = "";
-  document.getElementById("log-ex-rows").innerHTML = "";
-  document.getElementById("log-exercises-wrap").style.display = "none";
-  var extraBtn2 = document.getElementById("log-add-extra-btn"); if(extraBtn2) extraBtn2.style.display="none";
-  document.getElementById("log-routine").value = "";
-  setTimeout(function(){ fb.textContent = ""; populateChartExSelect(); rPerfHistory(); }, 1200);
+  sv(); svGym(); rExL();
+
+  fb.textContent = "Session saved! 💪";
+  setTimeout(function(){
+    liveSessionRid = null;
+    document.getElementById("log-pick-card").style.display="block";
+    document.getElementById("log-live-card").style.display="none";
+    document.getElementById("log-routine").value="";
+    fb.textContent="";
+    rPerfHistory();
+  }, 1400);
 }
+
+// kept for compatibility (calcLogDur referenced in HTML via old oninput — now unused but harmless)
+function savePerformanceLog(){ finishLiveSession(); }
+function loadLogExercises(){ startLiveSession(); }
+function addLogExtraRow(){ addLiveExtra(); }
 
 function rPerfHistory(){
   var list = document.getElementById("perf-history-list");
