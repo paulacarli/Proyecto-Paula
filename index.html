@@ -2307,12 +2307,14 @@ function openPerfTab(){
       fsel.appendChild(o);
     });
   }
-  // Reset to pick card
+  // Reset to pick card, unless a draft exists (restoreLiveSessionDraft handles UI)
   var ld = document.getElementById("log-date");
   if(ld && !ld.value) ld.value = tday();
-  document.getElementById("log-pick-card").style.display = "block";
-  document.getElementById("log-live-card").style.display = "none";
   stopGlobalTimer();
+  if(!restoreLiveSessionDraft()){
+    document.getElementById("log-pick-card").style.display = "block";
+    document.getElementById("log-live-card").style.display = "none";
+  }
   rPerfHistory();
 }
 
@@ -2630,15 +2632,139 @@ function hideRChartTip(){ var g=document.getElementById("rchart-tooltip-g"); if(
 var liveSessionRid = null;
 var liveSessionStart = null;
 var liveGlobalInterval = null;
-var liveExTimers = {}; // key: ex card index, value: {start, elapsed, interval, running}
+var liveDraftInterval = null;
+var liveExTimers = {}; // key: cardCi, value: {start, elapsed, interval, running}
+var liveExTimerElapsed = {}; // key: card index, persisted elapsed seconds
+var liveCardCounter = 0; // monotonic counter, key for liveExTimers
 
 function stopGlobalTimer(){
   if(liveGlobalInterval){ clearInterval(liveGlobalInterval); liveGlobalInterval=null; }
+  if(liveDraftInterval){ clearInterval(liveDraftInterval); liveDraftInterval=null; }
   Object.keys(liveExTimers).forEach(function(k){
     var t=liveExTimers[k]; if(t && t.interval){ clearInterval(t.interval); }
   });
   liveExTimers = {};
+  liveExTimerElapsed = {};
+  // don't reset liveCardCounter here — only reset when starting/restoring a session
 }
+
+// ── Auto-save live session draft ────────────────────────────────────────────
+function saveLiveSessionDraft(){
+  if(!liveSessionRid) return;
+  var date = (document.getElementById("log-date")||{}).value || "";
+  var notes = (document.getElementById("live-notes")||{}).value || "";
+  var cards = document.querySelectorAll("#live-ex-list > div");
+  var exStates = [];
+  cards.forEach(function(card, ci){
+    var isExtra = !!card.dataset.extra;
+    var name = "";
+    if(isExtra){
+      var nInp = card.querySelector(".live-extra-name");
+      name = nInp ? nInp.value : "";
+    } else {
+      name = (card.dataset.exName || "");
+    }
+    var fields = card.querySelector(".live-ex-fields");
+    var sets   = fields && fields.querySelector(".live-sets")   ? fields.querySelector(".live-sets").value   : "";
+    var reps   = fields && fields.querySelector(".live-reps")   ? fields.querySelector(".live-reps").value   : "";
+    var weight = fields && fields.querySelector(".live-weight") ? fields.querySelector(".live-weight").value : "";
+    var exNotes= fields && fields.querySelector(".live-ex-notes") ? fields.querySelector(".live-ex-notes").value : "";
+    // get current elapsed for this card's timer
+    var cardCiKey = card.dataset.cardCi;
+    var elapsed = 0;
+    var ts = liveExTimers[cardCiKey];
+    if(ts){
+      elapsed = ts.elapsed + (ts.running ? Math.floor((Date.now()-ts.start)/1000) : 0);
+    }
+    exStates.push({ idx:card.dataset.liveIdx, isExtra:isExtra, name:name,
+      sets:sets, reps:reps, weight:weight, notes:exNotes, timerElapsed:elapsed });
+  });
+  var draft = {
+    rid: liveSessionRid,
+    date: date,
+    sessionStart: liveSessionStart,
+    notes: notes,
+    exStates: exStates,
+    savedAt: Date.now()
+  };
+  try{ localStorage.setItem("pp_live_session", JSON.stringify(draft)); } catch(e){}
+}
+
+function clearLiveSessionDraft(){
+  try{ localStorage.removeItem("pp_live_session"); } catch(e){}
+}
+
+function restoreLiveSessionDraft(){
+  var raw;
+  try{ raw = localStorage.getItem("pp_live_session"); } catch(e){ return false; }
+  if(!raw) return false;
+  var draft;
+  try{ draft = JSON.parse(raw); } catch(e){ clearLiveSessionDraft(); return false; }
+  // Don't restore drafts older than 12 hours
+  if(!draft || !draft.rid || !draft.sessionStart || (Date.now()-draft.savedAt) > 43200000){
+    clearLiveSessionDraft(); return false;
+  }
+  var r = routines.find(function(r){ return r.id===draft.rid; });
+  if(!r){ clearLiveSessionDraft(); return false; }
+
+  // Offer to restore
+  var doRestore = confirm("You have an unfinished session for \"" + r.name + "\" from " + new Date(draft.sessionStart).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}) + ". Restore it?");
+  if(!doRestore){ clearLiveSessionDraft(); return false; }
+
+  // Restore UI
+  liveSessionRid = draft.rid;
+  liveSessionStart = draft.sessionStart;
+  liveExTimers = {};
+  liveExTimerElapsed = {};
+  liveCardCounter = 0;
+
+  var sel = document.getElementById("log-routine");
+  if(sel) sel.value = draft.rid;
+  var ld = document.getElementById("log-date");
+  if(ld) ld.value = draft.date;
+
+  document.getElementById("log-pick-card").style.display="none";
+  document.getElementById("log-live-card").style.display="block";
+  document.getElementById("live-routine-name").textContent = r.name;
+  var months=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  var dp=(draft.date||"").split("-");
+  if(dp.length===3) document.getElementById("live-session-date").textContent = dp[2]+" "+months[parseInt(dp[1])-1]+" "+dp[0];
+  document.getElementById("live-notes").value = draft.notes || "";
+  document.getElementById("log-fb").textContent="";
+  var lnEl2 = document.getElementById("live-notes");
+  if(lnEl2){ lnEl2.removeEventListener("input", saveLiveSessionDraft); lnEl2.addEventListener("input", saveLiveSessionDraft); }
+
+  var list = document.getElementById("live-ex-list");
+  list.innerHTML="";
+  (draft.exStates||[]).forEach(function(st, ci){
+    var ex;
+    if(!st.isExtra){
+      var idx2 = parseInt(st.idx);
+      ex = r.exercises[idx2] || {name:st.name, series:"", reps:"", peso:"", notes:""};
+    } else {
+      ex = {name:st.name, series:"", reps:"", peso:"", notes:""};
+    }
+    var card = makeLiveExCard(ex, st.isExtra ? ci : parseInt(st.idx), st.isExtra, st);
+    list.appendChild(card);
+  });
+
+  // Global timer resumes from elapsed time
+  liveGlobalInterval = setInterval(function(){
+    var sec = Math.floor((Date.now()-liveSessionStart)/1000);
+    var el = document.getElementById("live-global-timer");
+    if(el) el.textContent = fmtTimer(sec);
+  }, 1000);
+  // Immediate tick
+  var sec0 = Math.floor((Date.now()-liveSessionStart)/1000);
+  var gtEl = document.getElementById("live-global-timer");
+  if(gtEl) gtEl.textContent = fmtTimer(sec0);
+
+  // Auto-save draft on interval
+  liveDraftInterval = setInterval(saveLiveSessionDraft, 5000);
+
+  return true;
+}
+// ── end draft ───────────────────────────────────────────────────────────────
 
 function fmtTimer(sec){
   var m = Math.floor(sec/60), s = sec%60;
@@ -2657,6 +2783,8 @@ function startLiveSession(){
   liveSessionRid = rid;
   liveSessionStart = Date.now();
   liveExTimers = {};
+  liveExTimerElapsed = {};
+  liveCardCounter = 0;
 
   // Switch cards
   document.getElementById("log-pick-card").style.display="none";
@@ -2667,12 +2795,14 @@ function startLiveSession(){
   document.getElementById("live-session-date").textContent = dp[2]+" "+months[parseInt(dp[1])-1]+" "+dp[0];
   document.getElementById("live-notes").value="";
   document.getElementById("log-fb").textContent="";
+  var lnEl = document.getElementById("live-notes");
+  if(lnEl){ lnEl.removeEventListener("input", saveLiveSessionDraft); lnEl.addEventListener("input", saveLiveSessionDraft); }
 
   // Build exercise cards
   var list = document.getElementById("live-ex-list");
   list.innerHTML="";
   r.exercises.forEach(function(ex, idx){
-    list.appendChild(makeLiveExCard(ex, idx, false));
+    list.appendChild(makeLiveExCard(ex, idx, false, null));
   });
 
   // Global timer
@@ -2681,12 +2811,18 @@ function startLiveSession(){
     var el = document.getElementById("live-global-timer");
     if(el) el.textContent = fmtTimer(sec);
   }, 1000);
+
+  // Auto-save draft every 5 seconds
+  if(liveDraftInterval){ clearInterval(liveDraftInterval); }
+  liveDraftInterval = setInterval(saveLiveSessionDraft, 5000);
+  saveLiveSessionDraft(); // immediate first save
 }
 
-function makeLiveExCard(ex, idx, isExtra){
+function makeLiveExCard(ex, idx, isExtra, restoreData){
   var wc = isWarmCool(ex.name||"");
   var card = document.createElement("div");
   card.dataset.liveIdx = idx;
+  card.dataset.exName = ex.name||"";
   if(isExtra) card.dataset.extra = "1";
   card.style.cssText = "background:#1C1C1C;border:1px solid var(--border-s);border-radius:12px;padding:12px 12px 10px;margin-bottom:8px";
 
@@ -2737,8 +2873,16 @@ function makeLiveExCard(ex, idx, isExtra){
   timerBtn.textContent = "▶";
   timerBtn.title = "Start/stop exercise timer";
   timerBtn.style.cssText = "background:#2A2A2A;border:none;color:var(--peach);border-radius:8px;width:28px;height:28px;cursor:pointer;font-size:12px;line-height:1;flex-shrink:0";
-  // timer state per card
-  var timerState = { running:false, elapsed:0, start:0, interval:null };
+  // timer state per card — restore elapsed from draft if available
+  var restoredElapsed = (restoreData && restoreData.timerElapsed) ? parseInt(restoreData.timerElapsed)||0 : 0;
+  var cardCi = liveCardCounter++;
+  card.dataset.cardCi = cardCi;
+  var timerState = { running:false, elapsed:restoredElapsed, start:0, interval:null };
+  liveExTimers[cardCi] = timerState;
+  if(restoredElapsed > 0){
+    timerDisp.textContent = fmtTimer(restoredElapsed);
+    timerDisp.style.color = "#FF6B4A";
+  }
   timerBtn.addEventListener("click", function(){
     if(timerState.running){
       clearInterval(timerState.interval);
@@ -2746,6 +2890,7 @@ function makeLiveExCard(ex, idx, isExtra){
       timerState.running = false;
       timerBtn.textContent = "▶";
       timerBtn.style.color = "var(--peach)";
+      saveLiveSessionDraft();
     } else {
       timerState.start = Date.now();
       timerState.running = true;
@@ -2775,6 +2920,19 @@ function makeLiveExCard(ex, idx, isExtra){
   var fieldsDiv = document.createElement("div");
   fieldsDiv.className = "live-ex-fields";
   buildLiveExFields(fieldsDiv, ex, wc, isExtra);
+  // Restore input values from draft
+  if(restoreData){
+    var sInp = fieldsDiv.querySelector(".live-sets");   if(sInp && restoreData.sets)   sInp.value = restoreData.sets;
+    var rInp = fieldsDiv.querySelector(".live-reps");   if(rInp && restoreData.reps)   rInp.value = restoreData.reps;
+    var wInp = fieldsDiv.querySelector(".live-weight"); if(wInp && restoreData.weight) wInp.value = restoreData.weight;
+    var nInp2 = fieldsDiv.querySelector(".live-ex-notes"); if(nInp2 && restoreData.notes) nInp2.value = restoreData.notes;
+    if(isExtra){
+      var extraNm = card.querySelector(".live-extra-name");
+      if(extraNm && restoreData.name) extraNm.value = restoreData.name;
+    }
+  }
+  // Wire input changes to auto-save draft
+  fieldsDiv.addEventListener("input", function(){ saveLiveSessionDraft(); });
   card.appendChild(fieldsDiv);
 
   return card;
@@ -2815,15 +2973,20 @@ function addLiveExtra(){
   var list = document.getElementById("live-ex-list");
   if(!list) return;
   var idx = list.children.length;
-  var card = makeLiveExCard({name:"", series:"", reps:"", peso:"", notes:""}, idx, true);
+  var card = makeLiveExCard({name:"", series:"", reps:"", peso:"", notes:""}, idx, true, null);
   list.appendChild(card);
   var nameInp = card.querySelector(".live-extra-name");
-  if(nameInp) setTimeout(function(){ nameInp.focus(); }, 50);
+  if(nameInp){
+    nameInp.addEventListener("input", function(){ saveLiveSessionDraft(); });
+    setTimeout(function(){ nameInp.focus(); }, 50);
+  }
+  saveLiveSessionDraft();
 }
 
 function cancelLiveSession(){
   if(!confirm("Cancel this session? Progress will be lost.")) return;
   stopGlobalTimer();
+  clearLiveSessionDraft();
   liveSessionRid = null;
   document.getElementById("log-pick-card").style.display="block";
   document.getElementById("log-live-card").style.display="none";
@@ -2881,13 +3044,22 @@ function finishLiveSession(){
       obj.weight = (fields&&fields.querySelector(".live-weight")||{value:null}).value || null;
     }
     obj.notes = (fields&&fields.querySelector(".live-ex-notes")||{value:""}).value || null;
-    // capture elapsed timer
-    var timerDisp = card.querySelector(".live-ex-timer-disp");
-    if(timerDisp && timerDisp.textContent !== "00:00") obj.timerDisp = timerDisp.textContent;
+    // capture elapsed timer — use liveExTimers state for accuracy (handles restored sessions)
+    var cardCiFinish = card.dataset.cardCi;
+    var tsFinish = liveExTimers[cardCiFinish];
+    var elapsedFinish = 0;
+    if(tsFinish) elapsedFinish = tsFinish.elapsed + (tsFinish.running ? Math.floor((Date.now()-tsFinish.start)/1000) : 0);
+    if(elapsedFinish > 0){
+      obj.timerDisp = fmtTimer(elapsedFinish);
+    } else {
+      var timerDispEl = card.querySelector(".live-ex-timer-disp");
+      if(timerDispEl && timerDispEl.textContent !== "00:00") obj.timerDisp = timerDispEl.textContent;
+    }
     perf.push(obj);
   });
 
   stopGlobalTimer();
+  clearLiveSessionDraft();
 
   var entry = { id:Date.now(), routineId:rid, routineName:r?r.name:"",
     date:date, startTime:startTime, endTime:endTime,
