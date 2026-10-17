@@ -716,16 +716,12 @@ html,body{height:100%;font-family:"Nunito",sans-serif;background:#0A0A0A;color:v
     <div id="log-live-card" style="display:none">
       <div class="card" style="margin-bottom:4px">
         <!-- session header -->
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
           <div>
-            <div id="live-routine-name" style="font-size:16px;font-weight:800;color:#fff"></div>
+            <div id="live-routine-name" style="font-size:15px;font-weight:800;color:#fff"></div>
             <div id="live-session-date" style="font-size:11px;color:var(--ink-m);margin-top:1px"></div>
           </div>
-          <!-- global timer -->
-          <div style="text-align:right">
-            <div id="live-global-timer" style="font-size:22px;font-weight:800;color:var(--peach);font-variant-numeric:tabular-nums;letter-spacing:-1px">00:00</div>
-            <div style="font-size:10px;color:var(--ink-m);text-transform:uppercase;letter-spacing:.06em">total time</div>
-          </div>
+          <div id="live-global-timer" style="font-size:24px;font-weight:800;color:var(--peach);font-variant-numeric:tabular-nums;letter-spacing:-1px">00:00</div>
         </div>
 
         <!-- exercise cards -->
@@ -1225,7 +1221,7 @@ function exportGymReport(){
     return w.toLowerCase()==="body" ? "Body" : w+" kg";
   }
   var rows = "";
-  gymLog.slice().sort(function(a,b){ return a.date.localeCompare(b.date); }).forEach(function(entry){
+  gymLog.slice().sort(function(a,b){ return b.date.localeCompare(a.date); }).forEach(function(entry){
     var exRows = "";
     (entry.performance||[]).forEach(function(p){
       var timer = p.timerDisp ? "<span class='ex-timer'>⏱ "+p.timerDisp+"</span>" : "";
@@ -2655,29 +2651,32 @@ function saveLiveSessionDraft(){
   var notes = (document.getElementById("live-notes")||{}).value || "";
   var cards = document.querySelectorAll("#live-ex-list > div");
   var exStates = [];
-  cards.forEach(function(card, ci){
+  cards.forEach(function(card){
     var isExtra = !!card.dataset.extra;
-    var name = "";
-    if(isExtra){
-      var nInp = card.querySelector(".live-extra-name");
-      name = nInp ? nInp.value : "";
-    } else {
-      name = (card.dataset.exName || "");
-    }
-    var fields = card.querySelector(".live-ex-fields");
-    var sets   = fields && fields.querySelector(".live-sets")   ? fields.querySelector(".live-sets").value   : "";
-    var reps   = fields && fields.querySelector(".live-reps")   ? fields.querySelector(".live-reps").value   : "";
-    var weight = fields && fields.querySelector(".live-weight") ? fields.querySelector(".live-weight").value : "";
-    var exNotes= fields && fields.querySelector(".live-ex-notes") ? fields.querySelector(".live-ex-notes").value : "";
-    // get current elapsed for this card's timer
+    var name = isExtra
+      ? ((card.querySelector(".live-extra-name")||{}).value||"")
+      : (card.dataset.exName||"");
+    var exNotes = (card.querySelector(".live-ex-notes")||{}).value||"";
+    // collect set rows
+    var setRows = [];
+    card.querySelectorAll(".live-set-row").forEach(function(row){
+      setRows.push({
+        kg:   (row.querySelector(".sr-kg")||{}).value||"",
+        reps: (row.querySelector(".sr-reps")||{}).value||"",
+        done: row.dataset.done==="1"
+      });
+    });
     var cardCiKey = card.dataset.cardCi;
-    var elapsed = 0;
     var ts = liveExTimers[cardCiKey];
-    if(ts){
-      elapsed = ts.elapsed + (ts.running ? Math.floor((Date.now()-ts.start)/1000) : 0);
-    }
-    exStates.push({ idx:card.dataset.liveIdx, isExtra:isExtra, name:name,
-      sets:sets, reps:reps, weight:weight, notes:exNotes, timerElapsed:elapsed });
+    var elapsed = ts ? ts.elapsed + (ts.running ? Math.floor((Date.now()-ts.start)/1000) : 0) : 0;
+    exStates.push({
+      idx: card.dataset.liveIdx,
+      isExtra: isExtra,
+      name: name,
+      notes: exNotes,
+      setRows: setRows,
+      timerElapsed: elapsed
+    });
   });
   var draft = {
     rid: liveSessionRid,
@@ -2818,72 +2817,171 @@ function startLiveSession(){
   saveLiveSessionDraft(); // immediate first save
 }
 
+// ── Per-set-row exercise cards ──────────────────────────────────────────────
+
+function updateLiveStats(){
+  var totalVol = 0, totalSets = 0;
+  document.querySelectorAll("#live-ex-list .live-set-row").forEach(function(row){
+    if(row.dataset.done==="1"){
+      totalSets++;
+      var kgVal = ((row.querySelector(".sr-kg")||{value:""}).value||"").trim().toLowerCase();
+      var kg = kgVal==="body" ? 0 : parseFloat(kgVal)||0;
+      var reps = parseInt((row.querySelector(".sr-reps")||{value:""}).value)||0;
+      if(kgVal!=="body" && !isNaN(kg) && kg>0 && !isNaN(reps)) totalVol += kg * reps;
+    }
+  });
+  var vs = document.getElementById("live-stat-vol");
+  var ss = document.getElementById("live-stat-sets");
+  if(vs) vs.textContent = totalVol > 0 ? totalVol.toFixed(totalVol%1===0?0:1)+" kg" : "0 kg";
+  if(ss) ss.textContent = totalSets;
+}
+
+// Look up the last logged performance for a given exercise name in a routine
+function getPrevPerf(rid, exName){
+  var logs = gymLog.filter(function(e){ return e.routineId===rid; });
+  logs.sort(function(a,b){ return b.date.localeCompare(a.date) || b.id-a.id; });
+  for(var i=0;i<logs.length;i++){
+    var perf = (logs[i].performance||[]).find(function(p){
+      return p.name && p.name.toLowerCase()===exName.toLowerCase();
+    });
+    if(perf) return perf;
+  }
+  return null;
+}
+
+// Collapse all cards except the one passed
+function collapseOtherCards(activeCard){
+  document.querySelectorAll("#live-ex-list > div[data-card-ci]").forEach(function(c){
+    if(c === activeCard) return;
+    var body = c.querySelector(".live-card-body");
+    var chevron = c.querySelector(".live-card-chevron");
+    if(body && body.style.display !== "none"){
+      body.style.display = "none";
+      if(chevron) chevron.textContent = "›";
+    }
+  });
+}
+
 function makeLiveExCard(ex, idx, isExtra, restoreData){
   var wc = isWarmCool(ex.name||"");
   var card = document.createElement("div");
   card.dataset.liveIdx = idx;
   card.dataset.exName = ex.name||"";
   if(isExtra) card.dataset.extra = "1";
-  card.style.cssText = "background:#1C1C1C;border:1px solid var(--border-s);border-radius:12px;padding:12px 12px 10px;margin-bottom:8px";
-
-  // Header row: name + timer
-  var hdr = document.createElement("div");
-  hdr.style.cssText = "display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;gap:8px";
-
-  var nameWrap = document.createElement("div");
-  nameWrap.style.cssText = "flex:1;min-width:0";
-
-  if(isExtra){
-    // Editable name for extras
-    var nameInp = document.createElement("input");
-    nameInp.type="text"; nameInp.className="fi live-extra-name";
-    nameInp.placeholder="Exercise name";
-    nameInp.style.cssText="font-size:13px;font-weight:700;padding:4px 8px;width:100%;box-sizing:border-box";
-    nameInp.addEventListener("input", function(){ rebuildLiveExFields(card, nameInp.value, wc !== isWarmCool(nameInp.value)); wc=isWarmCool(nameInp.value); });
-    nameWrap.appendChild(nameInp);
-  } else {
-    var nm = document.createElement("div");
-    nm.style.cssText = "font-size:14px;font-weight:700;color:#fff";
-    nm.textContent = ex.name + (wc?" 🔥":"");
-    nameWrap.appendChild(nm);
-    if(!wc && (ex.series||ex.reps||ex.peso)){
-      var tgt = document.createElement("div");
-      tgt.style.cssText = "font-size:10px;color:var(--ink-m);margin-top:2px";
-      var wLbl = ex.peso?(ex.peso.toLowerCase()==="body"?"bodyweight":"@ "+ex.peso+" kg"):"";
-      tgt.textContent = "target: "+(ex.series||"?")+"×"+(ex.reps||"?")+(wLbl?" "+wLbl:"")+(ex.notes?" · "+ex.notes:"");
-      nameWrap.appendChild(tgt);
-    } else if(wc && ex.notes){
-      var hint = document.createElement("div");
-      hint.style.cssText = "font-size:10px;color:var(--ink-m);margin-top:2px";
-      hint.textContent = ex.notes;
-      nameWrap.appendChild(hint);
-    }
-  }
-  hdr.appendChild(nameWrap);
-
-  // Timer controls
-  var timerWrap = document.createElement("div");
-  timerWrap.style.cssText = "display:flex;align-items:center;gap:6px;flex-shrink:0";
-  var timerDisp = document.createElement("div");
-  timerDisp.className = "live-ex-timer-disp";
-  timerDisp.style.cssText = "font-size:13px;font-weight:700;color:var(--ink-m);font-variant-numeric:tabular-nums;min-width:38px;text-align:right";
-  timerDisp.textContent = "00:00";
-  var timerBtn = document.createElement("button");
-  timerBtn.className = "live-ex-timer-btn";
-  timerBtn.textContent = "▶";
-  timerBtn.title = "Start/stop exercise timer";
-  timerBtn.style.cssText = "background:#2A2A2A;border:none;color:var(--peach);border-radius:8px;width:28px;height:28px;cursor:pointer;font-size:12px;line-height:1;flex-shrink:0";
-  // timer state per card — restore elapsed from draft if available
-  var restoredElapsed = (restoreData && restoreData.timerElapsed) ? parseInt(restoreData.timerElapsed)||0 : 0;
   var cardCi = liveCardCounter++;
   card.dataset.cardCi = cardCi;
+
+  var restoredElapsed = (restoreData && restoreData.timerElapsed) ? parseInt(restoreData.timerElapsed)||0 : 0;
   var timerState = { running:false, elapsed:restoredElapsed, start:0, interval:null };
   liveExTimers[cardCi] = timerState;
-  if(restoredElapsed > 0){
-    timerDisp.textContent = fmtTimer(restoredElapsed);
-    timerDisp.style.color = "#FF6B4A";
+
+  // Decide initial expand state: first card or restoreData with content = expanded
+  var startExpanded = (idx===0 && !isExtra) || isExtra ||
+    (restoreData && (restoreData.timerElapsed>0 || (restoreData.setRows&&restoreData.setRows.some(function(r){return r.kg||r.reps;}))));
+
+  card.style.cssText = "background:#1C1C1C;border:1px solid var(--border-s);border-radius:14px;padding:0;margin-bottom:8px;overflow:hidden";
+
+  // ── Collapsed header (always visible) ──
+  var colHdr = document.createElement("div");
+  colHdr.style.cssText = "display:flex;align-items:center;justify-content:space-between;padding:12px 14px;cursor:pointer;gap:8px";
+
+  var colLeft = document.createElement("div");
+  colLeft.style.cssText = "flex:1;min-width:0";
+
+  var colName = document.createElement("div");
+  colName.style.cssText = "font-size:14px;font-weight:700;color:#fff;line-height:1.3";
+
+  if(isExtra){
+    // For extras show placeholder until named
+    colName.textContent = "New exercise";
+  } else {
+    colName.textContent = ex.name;
   }
-  timerBtn.addEventListener("click", function(){
+  colLeft.appendChild(colName);
+
+  // Previous perf summary (collapsed state hint)
+  if(!isExtra && !wc){
+    var prev = getPrevPerf(liveSessionRid, ex.name);
+    if(prev && prev.setRows && prev.setRows.length){
+      var donePrev = prev.setRows.filter(function(s){return s.done;});
+      if(donePrev.length){
+        var prevHint = document.createElement("div");
+        prevHint.style.cssText = "font-size:11px;color:var(--ink-m);margin-top:2px";
+        var kg0 = (donePrev[0].kg||"").toLowerCase()==="body"?"body":donePrev[0].kg;
+        prevHint.textContent = "Last: "+donePrev.length+"×"+donePrev[0].reps+(kg0?" @ "+kg0:"");
+        colLeft.appendChild(prevHint);
+      }
+    } else if(prev && prev.sets){
+      var prevHint2 = document.createElement("div");
+      prevHint2.style.cssText = "font-size:11px;color:var(--ink-m);margin-top:2px";
+      var w2 = prev.weight?(prev.weight.toLowerCase()==="body"?"body":prev.weight+" kg"):"";
+      prevHint2.textContent = "Last: "+prev.sets+"×"+(prev.reps||"?")+(w2?" @ "+w2:"");
+      colLeft.appendChild(prevHint2);
+    }
+  }
+  colHdr.appendChild(colLeft);
+
+  // Timer display (visible even when collapsed so you see it ticking)
+  var timerDisp = document.createElement("div");
+  timerDisp.className = "live-ex-timer-disp";
+  timerDisp.style.cssText = "font-size:13px;font-weight:700;color:var(--ink-m);font-variant-numeric:tabular-nums;min-width:38px;text-align:right;flex-shrink:0";
+  timerDisp.textContent = restoredElapsed>0 ? fmtTimer(restoredElapsed) : "00:00";
+  if(restoredElapsed>0) timerDisp.style.color="var(--peach)";
+  colHdr.appendChild(timerDisp);
+
+  // Chevron
+  var chevron = document.createElement("div");
+  chevron.className = "live-card-chevron";
+  chevron.style.cssText = "font-size:18px;color:var(--ink-m);flex-shrink:0;transition:transform .2s;line-height:1";
+  chevron.textContent = startExpanded ? "‹" : "›";
+  colHdr.appendChild(chevron);
+
+  // Toggle expand on header click
+  colHdr.addEventListener("click", function(e){
+    // don't toggle if clicking inside body
+    if(e.target.closest && e.target.closest(".live-card-body")) return;
+    var body = card.querySelector(".live-card-body");
+    var isOpen = body.style.display !== "none";
+    if(isOpen){
+      body.style.display = "none";
+      chevron.textContent = "›";
+    } else {
+      body.style.display = "block";
+      chevron.textContent = "‹";
+      collapseOtherCards(card);
+      // auto-start timer when opening
+      if(!timerState.running){
+        timerState.start = Date.now();
+        timerState.running = true;
+        timerBtn.textContent = "⏸";
+        timerBtn.style.color = "#fff";
+        timerState.interval = setInterval(function(){
+          var sec = timerState.elapsed + Math.floor((Date.now()-timerState.start)/1000);
+          timerDisp.textContent = fmtTimer(sec);
+          timerDisp.style.color = "var(--peach)";
+        }, 1000);
+      }
+    }
+  });
+
+  card.appendChild(colHdr);
+
+  // ── Expandable body ──
+  var body = document.createElement("div");
+  body.className = "live-card-body";
+  body.style.cssText = "padding:0 14px 12px;display:"+(startExpanded?"block":"none");
+
+  // Timer controls row
+  var timerRow = document.createElement("div");
+  timerRow.style.cssText = "display:flex;align-items:center;gap:8px;margin-bottom:10px";
+
+  var timerBtn = document.createElement("button");
+  timerBtn.className = "live-ex-timer-btn";
+  timerBtn.textContent = timerState.running ? "⏸" : "▶";
+  timerBtn.style.cssText = "background:#2A2A2A;border:none;color:var(--peach);border-radius:8px;width:28px;height:28px;cursor:pointer;font-size:12px;line-height:1;flex-shrink:0";
+
+  timerBtn.addEventListener("click", function(e){
+    e.stopPropagation();
     if(timerState.running){
       clearInterval(timerState.interval);
       timerState.elapsed += Math.floor((Date.now()-timerState.start)/1000);
@@ -2899,74 +2997,195 @@ function makeLiveExCard(ex, idx, isExtra, restoreData){
       timerState.interval = setInterval(function(){
         var sec = timerState.elapsed + Math.floor((Date.now()-timerState.start)/1000);
         timerDisp.textContent = fmtTimer(sec);
-        timerDisp.style.color = "#FF6B4A";
+        timerDisp.style.color = "var(--peach)";
       }, 1000);
     }
   });
-  timerWrap.appendChild(timerDisp);
-  timerWrap.appendChild(timerBtn);
 
+  timerRow.appendChild(timerBtn);
+
+  // extra name input
   if(isExtra){
+    var nameInp = document.createElement("input");
+    nameInp.type="text"; nameInp.className="fi live-extra-name";
+    nameInp.placeholder="Exercise name";
+    nameInp.style.cssText="font-size:13px;font-weight:700;padding:5px 8px;flex:1";
+    nameInp.addEventListener("input", function(){
+      colName.textContent = nameInp.value || "New exercise";
+      var newWc = isWarmCool(nameInp.value);
+      if(newWc !== wc){ wc = newWc; rebuildSetRows(card, ex, wc, isExtra, null); }
+      saveLiveSessionDraft();
+    });
+    if(restoreData && restoreData.name) { nameInp.value = restoreData.name; colName.textContent = restoreData.name; }
+    timerRow.appendChild(nameInp);
+
     var rmBtn = document.createElement("button");
     rmBtn.textContent="×";
-    rmBtn.style.cssText="background:#2A2A2A;border:none;color:#666;border-radius:6px;width:24px;height:24px;cursor:pointer;font-size:15px;line-height:1;flex-shrink:0";
-    rmBtn.addEventListener("click", function(){ card.remove(); });
-    timerWrap.appendChild(rmBtn);
+    rmBtn.style.cssText="background:transparent;border:none;color:var(--ink-m);font-size:18px;line-height:1;cursor:pointer;padding:2px 4px;flex-shrink:0";
+    rmBtn.addEventListener("click", function(e){
+      e.stopPropagation();
+      clearInterval(timerState.interval);
+      card.remove();
+      saveLiveSessionDraft();
+    });
+    timerRow.appendChild(rmBtn);
   }
-  hdr.appendChild(timerWrap);
-  card.appendChild(hdr);
+  body.appendChild(timerRow);
 
-  // Fields area
-  var fieldsDiv = document.createElement("div");
-  fieldsDiv.className = "live-ex-fields";
-  buildLiveExFields(fieldsDiv, ex, wc, isExtra);
-  // Restore input values from draft
-  if(restoreData){
-    var sInp = fieldsDiv.querySelector(".live-sets");   if(sInp && restoreData.sets)   sInp.value = restoreData.sets;
-    var rInp = fieldsDiv.querySelector(".live-reps");   if(rInp && restoreData.reps)   rInp.value = restoreData.reps;
-    var wInp = fieldsDiv.querySelector(".live-weight"); if(wInp && restoreData.weight) wInp.value = restoreData.weight;
-    var nInp2 = fieldsDiv.querySelector(".live-ex-notes"); if(nInp2 && restoreData.notes) nInp2.value = restoreData.notes;
-    if(isExtra){
-      var extraNm = card.querySelector(".live-extra-name");
-      if(extraNm && restoreData.name) extraNm.value = restoreData.name;
-    }
-  }
-  // Wire input changes to auto-save draft
-  fieldsDiv.addEventListener("input", function(){ saveLiveSessionDraft(); });
-  card.appendChild(fieldsDiv);
+  // Notes input
+  var notesInp = document.createElement("input");
+  notesInp.type="text"; notesInp.className="live-ex-notes fi";
+  notesInp.placeholder = wc ? "What did you do?" : "Notes...";
+  notesInp.style.cssText = "font-size:12px;padding:6px 10px;margin-bottom:10px;color:var(--ink-m)";
+  if(restoreData && restoreData.notes) notesInp.value = restoreData.notes;
+  else if(!isExtra && ex && ex.notes) notesInp.value = ex.notes;
+  notesInp.addEventListener("input", saveLiveSessionDraft);
+  body.appendChild(notesInp);
+
+  // Set rows area
+  var setArea = document.createElement("div");
+  setArea.className = "live-set-area";
+  body.appendChild(setArea);
+
+  card.appendChild(body);
+
+  // Build set rows
+  rebuildSetRows(card, ex, wc, isExtra, restoreData);
 
   return card;
 }
 
-function buildLiveExFields(container, ex, wc, isExtra){
-  container.innerHTML="";
-  if(!wc){
-    var grid = document.createElement("div");
-    grid.style.cssText = "display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:6px";
-    var ph = isExtra
-      ? [{cls:"live-sets",ph:"Sets",type:"number"},{cls:"live-reps",ph:"Reps",type:"number"},{cls:"live-weight",ph:"Body or kg",type:"text"}]
-      : [{cls:"live-sets",ph:ex.series||"Sets",type:"number"},{cls:"live-reps",ph:ex.reps||"Reps",type:"number"},{cls:"live-weight",ph:(ex.peso&&ex.peso.toLowerCase()==="body")?"Body":ex.peso||"kg",type:"text"}];
-    ph.forEach(function(f){
-      var inp=document.createElement("input");
-      inp.type=f.type; inp.className="fi "+f.cls;
-      inp.placeholder=f.ph; inp.style.cssText="font-size:13px;padding:8px 6px";
-      if(f.type==="number") inp.min="1";
-      grid.appendChild(inp);
-    });
-    container.appendChild(grid);
+function rebuildSetRows(card, ex, wc, isExtra, restoreData){
+  var setArea = card.querySelector(".live-set-area");
+  if(!setArea) return;
+  setArea.innerHTML = "";
+
+  if(wc){
+    var wcHint = document.createElement("div");
+    wcHint.style.cssText = "font-size:11px;color:var(--ink-m);padding:6px 0 4px;font-style:italic";
+    wcHint.textContent = "Warm-up / cardio — use the notes field above";
+    setArea.appendChild(wcHint);
+    return;
   }
-  var notesInp=document.createElement("input");
-  notesInp.type="text"; notesInp.className="fi live-ex-notes";
-  notesInp.placeholder= wc ? "What did you do?" : "Notes (optional)";
-  notesInp.style.cssText="font-size:12px;padding:7px 10px;width:100%;box-sizing:border-box"+(wc?"":";color:var(--ink-m)");
-  container.appendChild(notesInp);
+
+  // Previous perf rows for this exercise
+  var prevPerf = (!isExtra && liveSessionRid) ? getPrevPerf(liveSessionRid, ex.name||"") : null;
+  var prevRows = (prevPerf && prevPerf.setRows) ? prevPerf.setRows.filter(function(s){return s.done;}) : [];
+
+  // Column headers: SET / PREV / KG / REPS / ✓
+  var colHdr = document.createElement("div");
+  colHdr.style.cssText = "display:grid;grid-template-columns:22px 1fr 1fr 1fr 32px;gap:5px;align-items:center;margin-bottom:4px;padding:0 2px";
+  ["SET","PREV","KG","REPS",""].forEach(function(lbl, li){
+    var d = document.createElement("div");
+    d.style.cssText = "font-size:10px;font-weight:700;color:var(--ink-m);text-transform:uppercase;letter-spacing:.06em;text-align:center";
+    d.textContent = lbl;
+    colHdr.appendChild(d);
+  });
+  setArea.appendChild(colHdr);
+
+  // Determine initial set count from routine target
+  var targetSets = parseInt(ex.series) || 3;
+  var targetReps = ex.reps || "";
+  var targetKg   = (ex.peso && ex.peso.toLowerCase()!=="body") ? ex.peso : "";
+
+  // Restore set rows from draft or build fresh
+  var savedRows = (restoreData && restoreData.setRows) ? restoreData.setRows : [];
+  var numRows = savedRows.length > 0 ? savedRows.length : targetSets;
+  for(var i=0; i<numRows; i++){
+    var prev = prevRows[i] || null;
+    addSetRow(setArea, i+1, targetKg, targetReps, savedRows[i]||null, ex, prev);
+  }
+
+  // + Add set button
+  var addBtn = document.createElement("button");
+  addBtn.className = "live-add-set-btn";
+  addBtn.style.cssText = "width:100%;margin-top:8px;padding:8px;border-radius:8px;border:1.5px dashed var(--border);background:transparent;color:var(--ink-m);font-family:Nunito,sans-serif;font-size:12px;font-weight:600;cursor:pointer";
+  addBtn.textContent = "+ Add set";
+  addBtn.addEventListener("click", function(){
+    var rows = setArea.querySelectorAll(".live-set-row");
+    addSetRow(setArea, rows.length+1, targetKg, targetReps, null, ex);
+    saveLiveSessionDraft();
+  });
+  setArea.appendChild(addBtn);
+}
+
+function addSetRow(container, setNum, targetKg, targetReps, savedData, ex, prevData){
+  var row = document.createElement("div");
+  row.className = "live-set-row";
+  row.dataset.done = (savedData && savedData.done) ? "1" : "0";
+  row.style.cssText = "display:grid;grid-template-columns:22px 1fr 1fr 1fr 32px;gap:5px;align-items:center;margin-bottom:5px;border-radius:8px;padding:3px 2px;transition:background .15s";
+  if(savedData && savedData.done) row.style.background = "rgba(255,107,74,0.10)";
+
+  // Set number
+  var numEl = document.createElement("div");
+  numEl.style.cssText = "font-size:12px;font-weight:700;color:var(--peach);text-align:center;font-variant-numeric:tabular-nums";
+  numEl.textContent = setNum;
+  row.appendChild(numEl);
+
+  // PREV column
+  var prevEl = document.createElement("div");
+  prevEl.style.cssText = "font-size:11px;color:var(--ink-m);text-align:center;line-height:1.3";
+  if(prevData){
+    var pk = (prevData.kg||"").toLowerCase()==="body" ? "bw" : (prevData.kg||"—");
+    var pr = prevData.reps || "—";
+    prevEl.textContent = pk+"\n"+pr;
+    prevEl.style.whiteSpace = "pre";
+  } else {
+    prevEl.textContent = "—";
+  }
+  row.appendChild(prevEl);
+
+  // KG input
+  var kgInp = document.createElement("input");
+  kgInp.type="text"; kgInp.inputMode="decimal"; kgInp.className="fi sr-kg";
+  kgInp.placeholder = targetKg || "body";
+  kgInp.style.cssText = "font-size:13px;font-weight:600;padding:7px 4px;text-align:center";
+  if(savedData && savedData.kg) kgInp.value = savedData.kg;
+  kgInp.addEventListener("blur", function(){
+    var v = kgInp.value.trim().toLowerCase();
+    if(v==="" || v==="body" || v==="b"){ kgInp.value = "body"; }
+  });
+  kgInp.addEventListener("input", function(){ updateLiveStats(); saveLiveSessionDraft(); });
+  row.appendChild(kgInp);
+
+  // Reps input
+  var repsInp = document.createElement("input");
+  repsInp.type="text"; repsInp.inputMode="numeric"; repsInp.className="fi sr-reps";
+  repsInp.placeholder = targetReps || "reps";
+  repsInp.style.cssText = "font-size:13px;font-weight:600;padding:7px 4px;text-align:center";
+  if(savedData && savedData.reps) repsInp.value = savedData.reps;
+  repsInp.addEventListener("input", function(){ updateLiveStats(); saveLiveSessionDraft(); });
+  row.appendChild(repsInp);
+
+  // ✓ button
+  var doneBtn = document.createElement("button");
+  doneBtn.style.cssText = "width:28px;height:28px;border-radius:50%;border:2px solid var(--border);background:transparent;color:var(--ink-m);font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;flex-shrink:0;margin:0 auto";
+  doneBtn.textContent = "✓";
+  if(savedData && savedData.done){
+    doneBtn.style.background = "var(--peach)";
+    doneBtn.style.borderColor = "var(--peach)";
+    doneBtn.style.color = "#fff";
+  }
+  doneBtn.addEventListener("click", function(){
+    var isDone = row.dataset.done === "1";
+    row.dataset.done = isDone ? "0" : "1";
+    row.style.background = isDone ? "" : "rgba(255,107,74,0.10)";
+    doneBtn.style.background = isDone ? "transparent" : "var(--peach)";
+    doneBtn.style.borderColor = isDone ? "var(--border)" : "var(--peach)";
+    doneBtn.style.color = isDone ? "var(--ink-m)" : "#fff";
+    updateLiveStats();
+    saveLiveSessionDraft();
+  });
+  row.appendChild(doneBtn);
+
+  // Insert before the Add set button (which is always the last direct child)
+  var addBtn = container.lastElementChild;
+  if(addBtn && addBtn.classList.contains("live-add-set-btn")) container.insertBefore(row, addBtn);
+  else container.appendChild(row);
 }
 
 function rebuildLiveExFields(card, name, changed){
-  if(!changed) return;
-  var wc = isWarmCool(name);
-  var fieldsDiv = card.querySelector(".live-ex-fields");
-  if(fieldsDiv) buildLiveExFields(fieldsDiv, {}, wc, true);
+  // legacy stub — no longer needed but kept for safety
 }
 
 function addLiveExtra(){
@@ -3030,7 +3249,6 @@ function finishLiveSession(){
       name = ex2.name;
       wc = isWarmCool(name);
     }
-    var fields = card.querySelector(".live-ex-fields");
     var obj = { name:name };
     if(isExtra) obj.extra = true;
     if(wc){ obj.warmCool = true; }
@@ -3039,21 +3257,38 @@ function finishLiveSession(){
         var ex3 = r.exercises[parseInt(card.dataset.liveIdx)];
         obj.tSets=ex3.series; obj.tReps=ex3.reps; obj.tWeight=ex3.peso;
       }
-      obj.sets   = (fields&&fields.querySelector(".live-sets")||{value:null}).value   || null;
-      obj.reps   = (fields&&fields.querySelector(".live-reps")||{value:null}).value   || null;
-      obj.weight = (fields&&fields.querySelector(".live-weight")||{value:null}).value || null;
+      // collect per-set rows
+      var setRows = [];
+      card.querySelectorAll(".live-set-row").forEach(function(row){
+        setRows.push({
+          kg:   (row.querySelector(".sr-kg")||{value:""}).value||"",
+          reps: (row.querySelector(".sr-reps")||{value:""}).value||"",
+          done: row.dataset.done==="1"
+        });
+      });
+      obj.setRows = setRows;
+      // compute summary stats from done sets
+      var doneSets = setRows.filter(function(s){ return s.done; });
+      obj.sets = doneSets.length || null;
+      if(doneSets.length){
+        var isBody = doneSets.every(function(s){ return (s.kg||"").trim().toLowerCase()==="body" || s.kg===""});
+        if(isBody){
+          obj.weight = "body";
+        } else {
+          var kgNums = doneSets.map(function(s){ var v=(s.kg||"").trim().toLowerCase(); return v==="body"?0:parseFloat(v)||0; });
+          obj.weight = (kgNums.reduce(function(a,b){return a+b;},0)/kgNums.length).toFixed(1);
+        }
+        var avgReps = doneSets.map(function(s){ return parseInt(s.reps)||0; });
+        obj.reps = avgReps.length ? Math.round(avgReps.reduce(function(a,b){return a+b;},0)/avgReps.length) : null;
+      }
     }
-    obj.notes = (fields&&fields.querySelector(".live-ex-notes")||{value:""}).value || null;
-    // capture elapsed timer — use liveExTimers state for accuracy (handles restored sessions)
-    var cardCiFinish = card.dataset.cardCi;
-    var tsFinish = liveExTimers[cardCiFinish];
-    var elapsedFinish = 0;
-    if(tsFinish) elapsedFinish = tsFinish.elapsed + (tsFinish.running ? Math.floor((Date.now()-tsFinish.start)/1000) : 0);
-    if(elapsedFinish > 0){
-      obj.timerDisp = fmtTimer(elapsedFinish);
-    } else {
-      var timerDispEl = card.querySelector(".live-ex-timer-disp");
-      if(timerDispEl && timerDispEl.textContent !== "00:00") obj.timerDisp = timerDispEl.textContent;
+    obj.notes = (card.querySelector(".live-ex-notes")||{value:""}).value || null;
+    // capture per-exercise timer
+    var ciF = card.dataset.cardCi;
+    var tsF = liveExTimers[ciF];
+    if(tsF){
+      var elF = tsF.elapsed + (tsF.running ? Math.floor((Date.now()-tsF.start)/1000) : 0);
+      if(elF > 0) obj.timerDisp = fmtTimer(elF);
     }
     perf.push(obj);
   });
@@ -3178,9 +3413,10 @@ function rPerfHistory(){
 }
 
 function delPerfEntry(id){
-  gymLog = gymLog.filter(function(e){ return e.id!==id; });
-  sesiones = sesiones.filter(function(s){ return s.id!==id; });
-  exs = exs.filter(function(e){ return e.id!==id; });
+  id = Number(id);
+  gymLog   = gymLog.filter(function(e){ return Number(e.id)!==id; });
+  sesiones = sesiones.filter(function(s){ return Number(s.id)!==id; });
+  exs      = exs.filter(function(e){ return Number(e.id)!==id; });
   svGym(); sv();
   rPerfHistory();
 }
